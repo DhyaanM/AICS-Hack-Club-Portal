@@ -23,13 +23,16 @@ export async function GET(request: NextRequest) {
         })
 
         if (!error) {
-            // The user is now authenticated via the invitation token
-            // Redirect them to the password setup page
+            // Success! The user is now signed in via the token.
             return NextResponse.redirect(redirectTo)
+        } else {
+            console.error('Auth verification error:', error.message)
         }
     }
 
-    // If there's an error, redirect to the error page
-    redirectTo.pathname = '/login'
-    return NextResponse.redirect(redirectTo)
+    // Fallback if token is invalid or missing
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.searchParams.set('error', 'invalid_token')
+    return NextResponse.redirect(loginUrl)
 }
