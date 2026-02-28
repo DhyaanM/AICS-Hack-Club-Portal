@@ -12,19 +12,19 @@ function getEmailTemplate(title: string, memberName: string, contentHtml: string
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f0a1e;
-            color: #ffffff;
+            background-color: #f8fafc;
+            color: #0f172a;
             margin: 0;
             padding: 20px;
           }
           .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #1a0a2e;
+            background-color: #ffffff;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
           }
           .header {
             background: linear-gradient(135deg, #ec3750, #a633d6);
@@ -40,15 +40,15 @@ function getEmailTemplate(title: string, memberName: string, contentHtml: string
           }
           .content {
             padding: 30px;
-            color: #e2e8f0;
+            color: #334155;
           }
           .content h2 {
-            color: #ffffff;
+            color: #0f172a;
             font-size: 20px;
             margin-top: 0;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #e2e8f0;
           }
           .detail-row {
             margin-bottom: 16px;
@@ -65,19 +65,19 @@ function getEmailTemplate(title: string, memberName: string, contentHtml: string
           .detail-value {
             font-size: 16px;
             line-height: 1.5;
-            color: #ffffff;
+            color: #000000;
             margin: 0;
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: #f1f5f9;
             padding: 12px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid #e2e8f0;
           }
           .footer {
             text-align: center;
             padding: 20px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
           }
         </style>
       </head>
