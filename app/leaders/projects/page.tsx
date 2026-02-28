@@ -250,6 +250,18 @@ export default function LeaderProjectsPage() {
                 }}>
                   Save Comment
                 </Button>
+                {selected.status === "in-progress" && (
+                  <Button
+                    className="gap-1.5 bg-[#33d6a6] text-white hover:bg-[#2abc8e] font-bold spring-press"
+                    onClick={() => {
+                      updateProjectStatus(selected.id, "completed", comment)
+                      toast.success(`"${selected.title}" marked as completed!`)
+                      setSelected(null)
+                    }}
+                  >
+                    <CheckCircle2 className="h-4 w-4" /> Complete
+                  </Button>
+                )}
                 {selected.status === "rejected" && (
                   <Button
                     variant="ghost"
