@@ -238,6 +238,14 @@ export default function LeaderProjectsPage() {
                 >
                   <XCircle className="h-4 w-4" /> Reject
                 </Button>
+                <Button
+                  variant="ghost"
+                  className="gap-1.5 text-[#ec3750] hover:text-[#ec3750] hover:bg-[#ec3750]/10 font-bold px-3"
+                  onClick={() => handleDelete(selected)}
+                  title="Delete Project"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             )}
 
@@ -262,15 +270,13 @@ export default function LeaderProjectsPage() {
                     <CheckCircle2 className="h-4 w-4" /> Complete
                   </Button>
                 )}
-                {selected.status === "rejected" && (
-                  <Button
-                    variant="ghost"
-                    className="gap-1.5 text-[#ec3750] hover:text-[#ec3750] hover:bg-[#ec3750]/10 font-bold"
-                    onClick={() => handleDelete(selected)}
-                  >
-                    <Trash2 className="h-4 w-4" /> Delete
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  className="gap-1.5 text-[#ec3750] hover:text-[#ec3750] hover:bg-[#ec3750]/10 font-bold"
+                  onClick={() => handleDelete(selected)}
+                >
+                  <Trash2 className="h-4 w-4" /> Delete
+                </Button>
               </div>
             )}
           </DialogContent>
