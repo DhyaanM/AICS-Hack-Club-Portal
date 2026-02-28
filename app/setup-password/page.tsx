@@ -12,6 +12,7 @@ export default function SetupPasswordPage() {
     const supabase = createClient()
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [name, setName] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
 
@@ -23,23 +24,37 @@ export default function SetupPasswordPage() {
             return
         }
 
+        if (!name.trim()) {
+            toast.error("Please enter your full name.")
+            return
+        }
+
         if (password !== confirmPassword) {
             toast.error("Passwords do not match.")
             return
         }
 
         setLoading(true)
-        const { error } = await supabase.auth.updateUser({
+        const { data: authData, error } = await supabase.auth.updateUser({
             password: password,
+            data: { full_name: name.trim() }
         })
-        setLoading(false)
 
         if (error) {
             toast.error(error.message)
+            setLoading(false)
             return
         }
 
-        toast.success("Password set successfully!")
+        if (authData.user?.email) {
+            await supabase
+                .from("club_users")
+                .update({ name: name.trim() })
+                .ilike("email", authData.user.email)
+        }
+
+        setLoading(false)
+        toast.success("Password and name set successfully!")
         router.push("/members")
     }
 
@@ -71,6 +86,20 @@ export default function SetupPasswordPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-white/60 uppercase tracking-wider pl-1">
+                                    Full Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Jane Doe"
+                                    required
+                                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 text-sm font-medium text-white placeholder:text-white/20 outline-none focus:border-[#ec3750]/50"
+                                />
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-white/60 uppercase tracking-wider pl-1">
                                     New Password

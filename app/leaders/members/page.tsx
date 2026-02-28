@@ -47,6 +47,8 @@ export default function MembersPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [newName, setNewName] = useState("")
   const [newEmail, setNewEmail] = useState("")
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editName, setEditName] = useState("")
   const [removeId, setRemoveId] = useState<string | null>(null)
 
   const members = users.filter((u) => u.role === "member")
@@ -72,6 +74,13 @@ export default function MembersPage() {
     await removeMember(user.id)
     setRemoveId(null)
     toast.success(`${user.name} removed.`)
+  }
+
+  async function handleEdit() {
+    if (!editId || !editName.trim()) return
+    await useData().updateMemberName(editId, editName.trim())
+    toast.success("Name updated!")
+    setEditId(null)
   }
 
   return (
@@ -184,30 +193,59 @@ export default function MembersPage() {
                       Since {new Date(member.joinDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
                     </span>
 
-                    {/* Remove */}
-                    <Dialog open={removeId === member.id} onOpenChange={(o) => setRemoveId(o ? member.id : null)}>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-[#ec3750]">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-sm">
-                        <DialogHeader>
-                          <DialogTitle>Remove Member</DialogTitle>
-                        </DialogHeader>
-                        <p className="text-sm text-muted-foreground">
-                          Are you sure you want to remove <strong>{member.name}</strong>? This cannot be undone.
-                        </p>
-                        <div className="flex gap-2 mt-4">
-                          <Button variant="outline" className="flex-1" onClick={() => setRemoveId(null)}>
-                            Cancel
+                    {/* Actions */}
+                    <div className="flex items-center gap-1">
+                      {/* Edit */}
+                      <Dialog open={editId === member.id} onOpenChange={(o) => {
+                        if (o) setEditName(member.name)
+                        setEditId(o ? member.id : null)
+                      }}>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <span className="text-lg leading-none" style={{ marginTop: '-4px' }}>✎</span>
                           </Button>
-                          <Button className="flex-1 bg-[#ec3750] text-white hover:bg-[#d42d42]" onClick={() => handleRemove(member)}>
-                            Remove
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>Edit Member Name</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 pt-2">
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Full Name</label>
+                              <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                            </div>
+                            <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit}>
+                              Save Changes
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Remove */}
+                      <Dialog open={removeId === member.id} onOpenChange={(o) => setRemoveId(o ? member.id : null)}>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-[#ec3750]">
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>Remove Member</DialogTitle>
+                          </DialogHeader>
+                          <p className="text-sm text-muted-foreground">
+                            Are you sure you want to remove <strong>{member.name}</strong>? This cannot be undone.
+                          </p>
+                          <div className="flex gap-2 mt-4">
+                            <Button variant="outline" className="flex-1" onClick={() => setRemoveId(null)}>
+                              Cancel
+                            </Button>
+                            <Button className="flex-1 bg-[#ec3750] text-white hover:bg-[#d42d42]" onClick={() => handleRemove(member)}>
+                              Remove
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
                 )
               })}

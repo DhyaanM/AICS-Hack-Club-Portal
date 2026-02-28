@@ -118,6 +118,7 @@ interface DataContextValue {
 
   addMember: (member: Omit<User, "id" | "role" | "joinDate">) => Promise<void>
   removeMember: (id: string) => Promise<void>
+  updateMemberName: (id: string, name: string) => Promise<void>
   updateMemberTags: (id: string, tags: string[]) => Promise<void>
 
   addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
@@ -206,6 +207,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const removeMember = useCallback(async (id: string) => {
     await supabase.from("club_users").delete().eq("id", id)
+  }, [])
+
+  const updateMemberName = useCallback(async (id: string, name: string) => {
+    await supabase.from("club_users").update({ name }).eq("id", id)
   }, [])
 
   const updateMemberTags = useCallback(async (id: string, tags: string[]) => {
@@ -339,6 +344,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         isLoading,
         addMember,
         removeMember,
+        updateMemberName,
         updateMemberTags,
         addMeeting,
         markAttendance,
