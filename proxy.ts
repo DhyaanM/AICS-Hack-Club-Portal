@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -13,10 +13,13 @@ export async function middleware(request: NextRequest) {
         return supabaseResponse
     }
 
+    // Next.js 16.1+ requires awaiting cookies
+    const cookieStore = await request.cookies
+
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
             getAll() {
-                return request.cookies.getAll()
+                return cookieStore.getAll()
             },
             setAll(cookiesToSet) {
                 cookiesToSet.forEach(({ name, value, options }) =>
@@ -27,18 +30,29 @@ export async function middleware(request: NextRequest) {
     })
 
     try {
+        // getUser() is the recommended way to check for a valid session in a proxy/middleware
         const {
             data: { user },
         } = await supabase.auth.getUser()
 
         const path = request.nextUrl.pathname
+
+        // Auth protection logic
         if (!user && (path.startsWith("/leaders") || path.startsWith("/members"))) {
             const url = request.nextUrl.clone()
             url.pathname = "/login"
             return NextResponse.redirect(url)
         }
+
+        // Redirect logged-in users away from login
+        if (user && path.startsWith("/login")) {
+            const url = request.nextUrl.clone()
+            url.pathname = "/members"
+            return NextResponse.redirect(url)
+        }
     } catch (e) {
-        // Silently fail to let the page load
+        // Silently fail to ensure the application still loads if Supabase is down
+        console.error("Proxy Auth Error:", e)
     }
 
     return supabaseResponse
