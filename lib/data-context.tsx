@@ -270,7 +270,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: now,
       updated_at: now,
     })
-  }, [])
+
+    const memberName = users.find(u => u.id === project.createdBy)?.name || "A member"
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "project", memberName, details: project }),
+    }).catch(console.error)
+  }, [users])
 
   const updateProjectStatus = useCallback(async (id: string, status: ProjectStatus, leaderComment?: string) => {
     const update: Record<string, unknown> = { status, updated_at: today() }
@@ -302,7 +309,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       status: "pending",
       created_at: today(),
     })
-  }, [])
+
+    const memberName = users.find((u) => u.id === req.userId)?.name || "A member"
+    const meetingName = meetings.find((m) => m.id === req.meetingId)?.title || req.meetingId
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "leave", memberName, details: { date: meetingName, reason: req.reason } }),
+    }).catch(console.error)
+  }, [users, meetings])
 
   const updateLeaveStatus = useCallback(async (id: string, status: LeaveStatus) => {
     await supabase.from("leave_requests").update({ status }).eq("id", id)
@@ -321,7 +336,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: now,
       updated_at: now,
     })
-  }, [])
+
+    const memberName = users.find((u) => u.id === report.userId)?.name || "A member"
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "report", memberName, details: report }),
+    }).catch(console.error)
+  }, [users])
 
   const updateReportStatus = useCallback(async (id: string, status: ReportStatus, response?: string) => {
     const update: Record<string, unknown> = { status, updated_at: today() }
