@@ -11,6 +11,7 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <Hero />
+        {/* v1.0.1-stable */}
         <AboutSection />
         <ProjectShowcase />
         <ApplySection />
