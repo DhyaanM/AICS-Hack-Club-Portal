@@ -4,7 +4,7 @@ import { Resend } from 'resend'
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 function getEmailTemplate(title: string, memberName: string, contentHtml: string) {
-    return `
+  return `
     <!DOCTYPE html>
     <html>
       <head>
@@ -105,20 +105,20 @@ function getEmailTemplate(title: string, memberName: string, contentHtml: string
 }
 
 export async function POST(request: Request) {
-    try {
-        const { type, memberName, details } = await request.json()
+  try {
+    const { type, memberName, details } = await request.json()
 
-        let subject = ''
-        let text = ''
-        let html = ''
+    let subject = ''
+    let text = ''
+    let html = ''
 
-        if (type === 'project') {
-            subject = `New Project Proposal: ${details.title}`
-            text = `${memberName} has submitted a new project proposal:\n\nTitle: ${details.title}\nCategory: ${details.category}\nDescription: ${details.description}`
-            html = getEmailTemplate(
-                "New Project Proposal",
-                memberName,
-                `
+    if (type === 'project') {
+      subject = `New Project Proposal: ${details.title}`
+      text = `${memberName} has submitted a new project proposal:\n\nTitle: ${details.title}\nCategory: ${details.category}\nDescription: ${details.description}`
+      html = getEmailTemplate(
+        "New Project Proposal",
+        memberName,
+        `
           <div class="detail-row">
             <span class="detail-label">Project Title</span>
             <p class="detail-value">${details.title}</p>
@@ -132,14 +132,14 @@ export async function POST(request: Request) {
             <p class="detail-value">${details.description}</p>
           </div>
         `
-            )
-        } else if (type === 'leave') {
-            subject = `Leave Request: ${memberName}`
-            text = `${memberName} has requested a leave of absence:\n\nDate: ${details.date}\nReason: ${details.reason}`
-            html = getEmailTemplate(
-                "Leave Request",
-                memberName,
-                `
+      )
+    } else if (type === 'leave') {
+      subject = `Leave Request: ${memberName}`
+      text = `${memberName} has requested a leave of absence:\n\nDate: ${details.date}\nReason: ${details.reason}`
+      html = getEmailTemplate(
+        "Leave Request",
+        memberName,
+        `
           <div class="detail-row">
             <span class="detail-label">Meeting / Date</span>
             <p class="detail-value">${details.date}</p>
@@ -149,14 +149,14 @@ export async function POST(request: Request) {
             <p class="detail-value">${details.reason}</p>
           </div>
         `
-            )
-        } else if (type === 'report') {
-            subject = `Problem Report: ${details.category}`
-            text = `${memberName} reported an issue:\n\nTitle: ${details.title}\nCategory: ${details.category}\nDescription: ${details.description}`
-            html = getEmailTemplate(
-                "New Problem Report",
-                memberName,
-                `
+      )
+    } else if (type === 'report') {
+      subject = `Problem Report: ${details.category}`
+      text = `${memberName} reported an issue:\n\nTitle: ${details.title}\nCategory: ${details.category}\nDescription: ${details.description}`
+      html = getEmailTemplate(
+        "New Problem Report",
+        memberName,
+        `
           <div class="detail-row">
             <span class="detail-label">Report Title</span>
             <p class="detail-value">${details.title}</p>
@@ -170,27 +170,27 @@ export async function POST(request: Request) {
             <p class="detail-value">${details.description}</p>
           </div>
         `
-            )
-        } else {
-            return NextResponse.json({ error: 'Invalid notification type' }, { status: 400 })
-        }
-
-        const { data, error } = await resend.emails.send({
-            from: 'AICS Hack Club <onboarding@resend.dev>',
-            to: ['dhyaanmanganahalli@gmail.com', 's936832@aics.espritscholen.nl'],
-            subject,
-            text,
-            html,
-        })
-
-        if (error) {
-            console.error("Resend error:", error)
-            return NextResponse.json({ error }, { status: 500 })
-        }
-
-        return NextResponse.json({ data })
-    } catch (error) {
-        console.error("Error sending notification:", error)
-        return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
+      )
+    } else {
+      return NextResponse.json({ error: 'Invalid notification type' }, { status: 400 })
     }
+
+    const { data, error } = await resend.emails.send({
+      from: 'AICS Hack Club <onboarding@resend.dev>',
+      to: ['dhyaanmanganahalli@gmail.com'],
+      subject,
+      text,
+      html,
+    })
+
+    if (error) {
+      console.error("Resend error:", error)
+      return NextResponse.json({ error }, { status: 500 })
+    }
+
+    return NextResponse.json({ data })
+  } catch (error) {
+    console.error("Error sending notification:", error)
+    return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
+  }
 }
