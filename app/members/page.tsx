@@ -164,13 +164,14 @@ export default function MemberDashboard() {
           <CardContent className="space-y-3">
             {sorted.slice(0, 5).map((m) => {
               const rec = m.attendance.find((a) => a.userId === user.id)
-              const status = rec?.status ?? "absent"
-              const color =
-                status === "present"
-                  ? "var(--hc-green)"
-                  : status === "late"
-                    ? "var(--hc-yellow)"
-                    : "var(--hc-red)"
+              const isFuture = new Date(m.date) > new Date()
+              const status = rec?.status ?? (isFuture ? "n/a" : "absent")
+              let color = ""
+              if (status === "present") color = "var(--hc-green)"
+              else if (status === "late") color = "var(--hc-yellow)"
+              else if (status === "absent") color = "var(--hc-red)"
+              else color = "#8492a6" // n/a or excused
+
               return (
                 <div
                   key={m.id}
