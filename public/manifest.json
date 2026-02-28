@@ -1,0 +1,20 @@
+{
+  "name": "AICS Hack Club",
+  "short_name": "Hack Club",
+  "description": "The official portal for AICS Hack Club – build, learn, and hack together.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ec3750",
+  "theme_color": "#ec3750",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://assets.hackclub.com/icon-square.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en"
+}
