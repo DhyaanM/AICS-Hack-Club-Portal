@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { FolderKanban, Plus, ExternalLink, MessageSquare } from "lucide-react"
+import { FolderKanban, Plus, ExternalLink, MessageSquare, Check } from "lucide-react"
 import type { ProjectStatus } from "@/lib/types"
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
@@ -55,6 +55,9 @@ export default function MemberProjectsPage() {
   const [desc, setDesc] = useState("")
   const [category, setCategory] = useState("")
   const [type, setType] = useState<"solo" | "group">("solo")
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+
+  const otherMembers = users.filter(u => u.id !== user!.id && u.role === "member")
 
   function getMemberName(id: string) {
     return users.find((u) => u.id === id)?.name ?? id
@@ -73,14 +76,14 @@ export default function MemberProjectsPage() {
       status: "proposed",
       type,
       createdBy: user!.id,
-      memberIds: [user!.id],
+      memberIds: type === "group" ? [user!.id, ...selectedMembers] : [user!.id],
       isGroup: type === "group",
       links: [],
       progressNotes: [],
     })
     setSubmitting(false)
     toast.success("Project proposal submitted! A leader will review it soon.")
-    setTitle(""); setDesc(""); setCategory(""); setType("solo")
+    setTitle(""); setDesc(""); setCategory(""); setType("solo"); setSelectedMembers([])
     setOpen(false)
   }
 
@@ -144,6 +147,35 @@ export default function MemberProjectsPage() {
                   ))}
                 </div>
               </div>
+
+              {type === "group" && otherMembers.length > 0 && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="text-sm font-medium">Select Teammates</label>
+                  <div className="rounded-xl border border-border/50 bg-muted/20 p-2 max-h-48 overflow-y-auto space-y-1">
+                    {otherMembers.map(m => {
+                      const isSelected = selectedMembers.includes(m.id)
+                      return (
+                        <div
+                          key={m.id}
+                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${isSelected ? "bg-[#a633d6]/10" : "hover:bg-muted/50"}`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedMembers(prev => prev.filter(id => id !== m.id))
+                            } else {
+                              setSelectedMembers(prev => [...prev, m.id])
+                            }
+                          }}
+                        >
+                          <span className={`text-sm ${isSelected ? "font-semibold text-[#a633d6]" : "text-foreground"}`}>
+                            {m.name}
+                          </span>
+                          {isSelected && <Check className="h-4 w-4 text-[#a633d6]" />}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
               <Button className="w-full bg-[#a633d6] text-white hover:bg-[#9028be] spring-press" onClick={handleCreate} disabled={submitting}>
                 {submitting ? "Submitting..." : "Submit Proposal"}
               </Button>
