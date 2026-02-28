@@ -49,9 +49,11 @@ export interface Project {
   memberIds: string[]
   isGroup: boolean
   category: string
+  type?: string
   links: string[]
   imageUrl?: string
   feedback?: string
+  leaderComment?: string
   progressNotes?: string[]
   createdAt: string
   updatedAt: string

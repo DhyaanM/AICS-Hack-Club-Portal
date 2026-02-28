@@ -60,6 +60,7 @@ interface DataContextValue {
   ) => void
   addProjectNote: (id: string, note: string) => void
   updateProjectLinks: (id: string, links: string[]) => void
+  deleteProject: (id: string) => void
 
   // Leave requests
   addLeaveRequest: (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => void
@@ -236,6 +237,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const deleteProject = useCallback((id: string) => {
+    setProjects((prev) => prev.filter((p) => p.id !== id))
+  }, [])
+
   // ─── Leave Requests ───────────────────────────────────────────────────────
   const addLeaveRequest = useCallback(
     (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => {
@@ -310,6 +315,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateProjectStatus,
         addProjectNote,
         updateProjectLinks,
+        deleteProject,
         addLeaveRequest,
         updateLeaveStatus,
         addReport,

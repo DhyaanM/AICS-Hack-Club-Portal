@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink } from "lucide-react"
+import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink, Trash2 } from "lucide-react"
 import type { Project, ProjectStatus } from "@/lib/types"
 
 const TABS: { key: ProjectStatus | "all"; label: string; color: string }[] = [
@@ -36,7 +36,7 @@ function initials(name: string) {
 }
 
 export default function LeaderProjectsPage() {
-  const { projects, users, updateProjectStatus } = useData()
+  const { projects, users, updateProjectStatus, deleteProject } = useData()
   const [tab, setTab] = useState<ProjectStatus | "all">("all")
   const [selected, setSelected] = useState<Project | null>(null)
   const [comment, setComment] = useState("")
@@ -65,6 +65,12 @@ export default function LeaderProjectsPage() {
     setComment("")
   }
 
+  function handleDelete(p: Project) {
+    deleteProject(p.id)
+    toast.success(`"${p.title}" deleted.`)
+    setSelected(null)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -83,8 +89,8 @@ export default function LeaderProjectsPage() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all spring-press ${tab === t.key
-                  ? "text-white shadow-md"
-                  : "border border-border bg-background text-muted-foreground hover:text-foreground"
+                ? "text-white shadow-md"
+                : "border border-border bg-background text-muted-foreground hover:text-foreground"
                 }`}
               style={tab === t.key ? { background: t.color } : {}}
             >
@@ -233,13 +239,24 @@ export default function LeaderProjectsPage() {
             )}
 
             {selected.status !== "proposed" && (
-              <Button variant="outline" className="w-full" onClick={() => {
-                updateProjectStatus(selected.id, selected.status, comment)
-                toast.success("Comment saved!")
-                setSelected(null)
-              }}>
-                Save Comment
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => {
+                  updateProjectStatus(selected.id, selected.status, comment)
+                  toast.success("Comment saved!")
+                  setSelected(null)
+                }}>
+                  Save Comment
+                </Button>
+                {selected.status === "rejected" && (
+                  <Button
+                    variant="ghost"
+                    className="gap-1.5 text-[#ec3750] hover:text-[#ec3750] hover:bg-[#ec3750]/10 font-bold"
+                    onClick={() => handleDelete(selected)}
+                  >
+                    <Trash2 className="h-4 w-4" /> Delete
+                  </Button>
+                )}
+              </div>
             )}
           </DialogContent>
         )}
