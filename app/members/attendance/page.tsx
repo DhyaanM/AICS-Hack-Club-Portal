@@ -118,29 +118,43 @@ export default function MemberAttendancePage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border/50">
-            {sorted.map((m) => {
-              const rec = m.attendance.find((a) => a.userId === user.id)
-              const isFuture = new Date(m.date) > new Date()
-              const status = rec?.status ?? (isFuture ? "n/a" : "absent")
-              const color = STATUS_COLORS[status] || "#8492a6"
-              return (
-                <div key={m.id} className="flex items-center justify-between px-5 py-3.5">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{m.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(m.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
-                    </p>
+            {(() => {
+              const validMeetings = sorted.filter(m => {
+                const rec = m.attendance.find((a) => a.userId === user.id)
+                return rec && rec.status !== "n/a"
+              })
+
+              if (validMeetings.length === 0) {
+                return (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    No meeting attendance logged yet.
+                  </p>
+                )
+              }
+
+              return validMeetings.map((m) => {
+                const rec = m.attendance.find((a) => a.userId === user.id)!
+                const status = rec.status
+                const color = STATUS_COLORS[status] || "#8492a6"
+                return (
+                  <div key={m.id} className="flex items-center justify-between px-5 py-3.5">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{m.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(m.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="capitalize text-xs"
+                      style={{ background: color + "18", color }}
+                    >
+                      {status}
+                    </Badge>
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className="capitalize text-xs"
-                    style={{ background: color + "18", color }}
-                  >
-                    {status}
-                  </Badge>
-                </div>
-              )
-            })}
+                )
+              })
+            })()}
           </div>
         </CardContent>
       </Card>

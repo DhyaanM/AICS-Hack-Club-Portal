@@ -162,45 +162,59 @@ export default function MemberDashboard() {
             <CardTitle className="text-base">Recent Attendance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {sorted.slice(0, 5).map((m) => {
-              const rec = m.attendance.find((a) => a.userId === user.id)
-              const isFuture = new Date(m.date) > new Date()
-              const status = rec?.status ?? (isFuture ? "n/a" : "absent")
-              let color = ""
-              if (status === "present") color = "var(--hc-green)"
-              else if (status === "late") color = "var(--hc-yellow)"
-              else if (status === "absent") color = "var(--hc-red)"
-              else color = "#8492a6" // n/a or excused
+            {(() => {
+              const validMeetings = sorted.filter(m => {
+                const rec = m.attendance.find((a) => a.userId === user.id)
+                return rec && rec.status !== "n/a"
+              })
 
-              return (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between rounded-lg border border-border/60 p-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-card-foreground">
-                      {m.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(m.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="secondary"
-                    className="text-xs capitalize"
-                    style={{
-                      backgroundColor: color + "18",
-                      color,
-                    }}
+              if (validMeetings.length === 0) {
+                return (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    No recent meetings.
+                  </p>
+                )
+              }
+
+              return validMeetings.slice(0, 5).map((m) => {
+                const rec = m.attendance.find((a) => a.userId === user.id)!
+                const status = rec.status
+                let color = ""
+                if (status === "present") color = "var(--hc-green)"
+                else if (status === "late") color = "var(--hc-yellow)"
+                else if (status === "absent") color = "var(--hc-red)"
+                else color = "#8492a6" // excused
+
+                return (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between rounded-lg border border-border/60 p-3"
                   >
-                    {status}
-                  </Badge>
-                </div>
-              )
-            })}
+                    <div>
+                      <p className="text-sm font-medium text-card-foreground">
+                        {m.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(m.date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs capitalize"
+                      style={{
+                        backgroundColor: color + "18",
+                        color,
+                      }}
+                    >
+                      {status}
+                    </Badge>
+                  </div>
+                )
+              })
+            })()}
           </CardContent>
         </Card>
       </div>
