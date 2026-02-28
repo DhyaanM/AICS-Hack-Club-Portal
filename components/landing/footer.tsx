@@ -34,7 +34,7 @@ export function Footer() {
 
         <div className="mt-8 border-t border-white/10 pt-8 text-center text-xs text-white/30">
           © {new Date().getFullYear()} AICS Hack Club · Made with{" "}
-          <span className="text-[#ec3750]">❤</span> by Dhyaan Manganahalli
+          <span className="text-[#ec3750]">❤</span> by <span className="font-bold text-white">Dhyaan Manganahalli</span>
         </div>
       </div>
     </footer>
