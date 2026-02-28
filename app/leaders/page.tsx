@@ -10,6 +10,7 @@ import {
   FolderKanban,
   AlertTriangle,
   TrendingUp,
+  CalendarClock,
 } from "lucide-react"
 import {
   BarChart,
@@ -35,11 +36,12 @@ const reportStatusColors: Record<string, string> = {
 }
 
 export default function LeadersDashboard() {
-  const { users, meetings, projects, reports } = useData()
+  const { users, meetings, projects, reports, leaveRequests } = useData()
 
   const members = users.filter((u) => u.role === "member")
   const pendingProjects = projects.filter((p) => p.status === "proposed")
   const openReports = reports.filter((r) => r.status !== "resolved")
+  const pendingLeaves = leaveRequests.filter((l) => l.status === "pending")
 
   // Sort chronologically (oldest first)
   const sortedMeetings = [...meetings].sort(
@@ -83,7 +85,7 @@ export default function LeadersDashboard() {
 
       {/* Stats */}
       <div
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-8 duration-700"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-in fade-in slide-in-from-bottom-8 duration-700"
       >
         <StatCard
           label="Total Members"
@@ -102,7 +104,14 @@ export default function LeadersDashboard() {
           value={pendingProjects.length}
           icon={<FolderKanban className="h-5 w-5" />}
           color="#f1c40f"
-          subtitle="Awaiting review"
+          subtitle="Proposals"
+        />
+        <StatCard
+          label="Pending Leaves"
+          value={pendingLeaves.length}
+          icon={<CalendarClock className="h-5 w-5" />}
+          color="#a633d6"
+          subtitle="Review needed"
         />
         <StatCard
           label="Open Reports"
@@ -224,7 +233,39 @@ export default function LeadersDashboard() {
               </div>
             )}
 
-            {pendingProjects.length === 0 && openReports.length === 0 && (
+            {/* Pending leaves */}
+            {pendingLeaves.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Pending Leave Requests
+                </p>
+                <div className="space-y-2">
+                  {pendingLeaves.map((l) => (
+                    <div
+                      key={l.id}
+                      className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-card-foreground">
+                          {users.find(u => u.id === l.userId)?.name || "Member"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {meetings.find(m => m.id === l.meetingId)?.title || "Unknown Meeting"}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-[#a633d6]/10 text-[#a633d6]"
+                      >
+                        {l.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {pendingProjects.length === 0 && openReports.length === 0 && pendingLeaves.length === 0 && (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 Nothing pending -- all caught up!
               </p>
