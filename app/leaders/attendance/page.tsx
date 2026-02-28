@@ -17,18 +17,20 @@ import { toast } from "sonner"
 import { CalendarCheck, Download, Save, Plus, Calendar as CalendarIcon } from "lucide-react"
 import type { AttendanceStatus } from "@/lib/types"
 
-const STATUS_CYCLE: AttendanceStatus[] = ["present", "late", "absent", "excused"]
+const STATUS_CYCLE: AttendanceStatus[] = ["present", "late", "absent", "excused", "n/a"]
 const STATUS_COLORS: Record<AttendanceStatus, string> = {
   present: "#33d6a6",
   late: "#f1c40f",
   absent: "#ec3750",
   excused: "#8492a6",
+  "n/a": "#8492a6",
 }
 const STATUS_BG: Record<AttendanceStatus, string> = {
   present: "#33d6a618",
   late: "#f1c40f18",
   absent: "#ec375018",
   excused: "#8492a618",
+  "n/a": "#8492a618",
 }
 
 function initials(name: string) {
@@ -56,10 +58,12 @@ export default function AttendancePage() {
   // Reset draft when meeting changes
   useEffect(() => {
     if (!meeting) return
+    const isFuture = new Date(meeting.date) > new Date()
+    const defaultStatus = isFuture ? "n/a" : "absent"
     const init: Record<string, AttendanceStatus> = {}
     for (const member of members) {
       const rec = meeting.attendance.find((a) => a.userId === member.id)
-      init[member.id] = rec?.status ?? "absent"
+      init[member.id] = rec?.status ?? defaultStatus as AttendanceStatus
     }
     setDraft(init)
   }, [selectedId, meetings]) // eslint-disable-line
@@ -101,6 +105,7 @@ export default function AttendancePage() {
   const late = Object.values(draft).filter((s) => s === "late").length
   const absent = Object.values(draft).filter((s) => s === "absent").length
   const excused = Object.values(draft).filter((s) => s === "excused").length
+  const na = Object.values(draft).filter((s) => s === "n/a").length
 
   return (
     <div className="space-y-6">
@@ -209,6 +214,7 @@ export default function AttendancePage() {
                 { label: "Late", value: late, color: "#f1c40f" },
                 { label: "Absent", value: absent, color: "#ec3750" },
                 { label: "Excused", value: excused, color: "#8492a6" },
+                { label: "N/A", value: na, color: "#8492a6" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <p className="text-2xl font-extrabold" style={{ color: s.color }}>{s.value}</p>
@@ -261,7 +267,7 @@ export default function AttendancePage() {
                         border: `1px solid ${STATUS_COLORS[status]}44`,
                       }}
                     >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      {status === "n/a" ? "N/A" : status.charAt(0).toUpperCase() + status.slice(1)}
                     </button>
                   </div>
                 )

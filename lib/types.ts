@@ -10,7 +10,7 @@ export interface User {
   tags: string[]
 }
 
-export type AttendanceStatus = "present" | "absent" | "late" | "excused"
+export type AttendanceStatus = "present" | "absent" | "late" | "excused" | "n/a"
 
 export interface AttendanceRecord {
   id: string

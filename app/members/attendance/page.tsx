@@ -12,6 +12,7 @@ const STATUS_COLORS: Record<string, string> = {
   late: "#f1c40f",
   absent: "#ec3750",
   excused: "#8492a6",
+  "n/a": "#8492a6",
 }
 
 export default function MemberAttendancePage() {
@@ -119,8 +120,9 @@ export default function MemberAttendancePage() {
           <div className="divide-y divide-border/50">
             {sorted.map((m) => {
               const rec = m.attendance.find((a) => a.userId === user.id)
-              const status = rec?.status ?? "absent"
-              const color = STATUS_COLORS[status]
+              const isFuture = new Date(m.date) > new Date()
+              const status = rec?.status ?? (isFuture ? "n/a" : "absent")
+              const color = STATUS_COLORS[status] || "#8492a6"
               return (
                 <div key={m.id} className="flex items-center justify-between px-5 py-3.5">
                   <div>
