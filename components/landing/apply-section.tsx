@@ -118,7 +118,7 @@ export function ApplySection() {
                 }}
               >
                 <h3 className="font-extrabold text-2xl">Application Form</h3>
-                <p className="text-sm text-white/80 mt-1 font-medium">Takes about 2 minutes</p>
+                <p className="text-sm text-white/80 mt-1 font-medium">Takes about 5 minutes</p>
               </div>
 
               <div className="p-6 sm:p-8">
