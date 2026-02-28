@@ -36,6 +36,7 @@ export default function LeavePage() {
   const [open, setOpen] = useState(false)
   const [meetingId, setMeetingId] = useState("")
   const [reason, setReason] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   // Upcoming meetings not yet requested
   const today = new Date().toISOString().split("T")[0]
@@ -43,16 +44,16 @@ export default function LeavePage() {
   const alreadyRequested = new Set(myLeaves.map((l) => l.meetingId))
   const available = upcoming.filter((m) => !alreadyRequested.has(m.id))
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!meetingId) { toast.error("Please select a meeting."); return }
     if (!reason.trim()) { toast.error("Please provide a reason."); return }
-
-    addLeaveRequest({
+    setSubmitting(true)
+    await addLeaveRequest({
       userId: user!.id,
       meetingId: meetingId,
       reason: reason.trim(),
     })
-
+    setSubmitting(false)
     toast.success("Leave request submitted!")
     setMeetingId("")
     setReason("")
@@ -108,8 +109,9 @@ export default function LeavePage() {
                 className="w-full spring-press"
                 style={{ background: "#f1c40f", color: "#000" }}
                 onClick={handleSubmit}
+                disabled={submitting}
               >
-                Submit Request
+                {submitting ? "Submitting..." : "Submit Request"}
               </Button>
             </div>
           </DialogContent>

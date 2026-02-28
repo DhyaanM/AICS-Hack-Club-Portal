@@ -48,6 +48,7 @@ export default function MemberProjectsPage() {
   const [open, setOpen] = useState(false)
   const [noteProject, setNoteProject] = useState<string | null>(null)
   const [note, setNote] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   // New project form
   const [title, setTitle] = useState("")
@@ -59,28 +60,33 @@ export default function MemberProjectsPage() {
     return users.find((u) => u.id === id)?.name ?? id
   }
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!title.trim() || !desc.trim() || !category) {
       toast.error("Please fill in all required fields.")
       return
     }
-    addProject({
+    setSubmitting(true)
+    await addProject({
       title: title.trim(),
       description: desc.trim(),
       category,
       status: "proposed",
       type,
-      memberIds: [user.id],
+      createdBy: user!.id,
+      memberIds: [user!.id],
+      isGroup: type === "group",
+      links: [],
       progressNotes: [],
     })
+    setSubmitting(false)
     toast.success("Project proposal submitted! A leader will review it soon.")
     setTitle(""); setDesc(""); setCategory(""); setType("solo")
     setOpen(false)
   }
 
-  function handleNote() {
+  async function handleNote() {
     if (!note.trim() || !noteProject) return
-    addProjectNote(noteProject, note.trim())
+    await addProjectNote(noteProject, note.trim())
     toast.success("Note added!")
     setNote("")
     setNoteProject(null)
@@ -129,8 +135,8 @@ export default function MemberProjectsPage() {
                       key={t}
                       onClick={() => setType(t)}
                       className={`flex-1 rounded-xl border py-2.5 text-sm font-medium capitalize transition-all spring-press ${type === t
-                          ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
-                          : "border-border text-muted-foreground hover:border-[#a633d6]/40"
+                        ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                        : "border-border text-muted-foreground hover:border-[#a633d6]/40"
                         }`}
                     >
                       {t === "solo" ? "👤 Solo" : "👥 Group"}
@@ -138,8 +144,8 @@ export default function MemberProjectsPage() {
                   ))}
                 </div>
               </div>
-              <Button className="w-full bg-[#a633d6] text-white hover:bg-[#9028be] spring-press" onClick={handleCreate}>
-                Submit Proposal
+              <Button className="w-full bg-[#a633d6] text-white hover:bg-[#9028be] spring-press" onClick={handleCreate} disabled={submitting}>
+                {submitting ? "Submitting..." : "Submit Proposal"}
               </Button>
             </div>
           </DialogContent>

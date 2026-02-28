@@ -56,20 +56,20 @@ export default function MembersPage() {
       m.email.toLowerCase().includes(search.toLowerCase())
   )
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!newName.trim() || !newEmail.trim()) {
       toast.error("Please fill in name and email.")
       return
     }
-    addMember({ name: newName.trim(), email: newEmail.trim() })
+    await addMember({ name: newName.trim(), email: newEmail.trim(), tags: [] })
     toast.success(`${newName.trim()} added!`)
     setNewName("")
     setNewEmail("")
     setAddOpen(false)
   }
 
-  function handleRemove(user: User) {
-    removeMember(user.id)
+  async function handleRemove(user: User) {
+    await removeMember(user.id)
     setRemoveId(null)
     toast.success(`${user.name} removed.`)
   }

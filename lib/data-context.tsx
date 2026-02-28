@@ -19,282 +19,313 @@ import type {
   LeaveStatus,
   ReportStatus,
 } from "./types"
-import {
-  users as mockUsers,
-  meetings as mockMeetings,
-  projects as mockProjects,
-  leaveRequests as mockLeaveRequests,
-  problemReports as mockReports,
-} from "./mock-data"
+import { createClient } from "@/lib/supabase/client"
 
+const supabase = createClient()
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function generateId() {
+  return Math.random().toString(36).slice(2, 10)
+}
+
+function today() {
+  return new Date().toISOString().split("T")[0]
+}
+
+// Map Supabase snake_case rows → camelCase app types
+function mapUser(row: Record<string, unknown>): User {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    email: row.email as string,
+    role: row.role as "leader" | "member",
+    joinDate: row.join_date as string,
+    tags: (row.tags as string[]) ?? [],
+  }
+}
+
+function mapMeeting(row: Record<string, unknown>, attendanceRows: Record<string, unknown>[]): Meeting {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    date: row.date as string,
+    description: row.description as string | undefined,
+    attendance: attendanceRows
+      .filter((a) => a.meeting_id === row.id)
+      .map((a) => ({
+        id: a.id as string,
+        meetingId: a.meeting_id as string,
+        userId: a.user_id as string,
+        status: a.status as AttendanceStatus,
+      })),
+  }
+}
+
+function mapProject(row: Record<string, unknown>): Project {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    description: row.description as string,
+    status: row.status as ProjectStatus,
+    createdBy: row.created_by as string,
+    memberIds: (row.member_ids as string[]) ?? [],
+    isGroup: row.is_group as boolean,
+    category: row.category as string,
+    type: row.type as string | undefined,
+    links: (row.links as string[]) ?? [],
+    imageUrl: row.image_url as string | undefined,
+    feedback: row.feedback as string | undefined,
+    leaderComment: row.leader_comment as string | undefined,
+    progressNotes: (row.progress_notes as string[]) ?? [],
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }
+}
+
+function mapLeaveRequest(row: Record<string, unknown>): LeaveRequest {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    meetingId: row.meeting_id as string,
+    reason: row.reason as string,
+    status: row.status as LeaveStatus,
+    createdAt: row.created_at as string,
+  }
+}
+
+function mapReport(row: Record<string, unknown>): ProblemReport {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    title: row.title as string,
+    description: row.description as string,
+    category: row.category as string,
+    status: row.status as ReportStatus,
+    leaderResponse: row.leader_response as string | undefined,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }
+}
+
+// ─── Context ──────────────────────────────────────────────────────────────────
 interface DataContextValue {
   users: User[]
   meetings: Meeting[]
   projects: Project[]
   leaveRequests: LeaveRequest[]
   reports: ProblemReport[]
+  isLoading: boolean
 
-  // Member management
-  addMember: (member: Omit<User, "id" | "role" | "joinDate">) => void
-  removeMember: (id: string) => void
-  updateMemberTags: (id: string, tags: string[]) => void
+  addMember: (member: Omit<User, "id" | "role" | "joinDate">) => Promise<void>
+  removeMember: (id: string) => Promise<void>
+  updateMemberTags: (id: string, tags: string[]) => Promise<void>
 
-  // Attendance
-  addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => void
-  markAttendance: (
-    meetingId: string,
-    userId: string,
-    status: AttendanceStatus
-  ) => void
-  saveMeetingAttendance: (
-    meetingId: string,
-    records: { userId: string; status: AttendanceStatus }[]
-  ) => void
+  addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
+  markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
+  saveMeetingAttendance: (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => Promise<void>
 
-  // Projects
-  addProject: (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => void
-  updateProjectStatus: (
-    id: string,
-    status: ProjectStatus,
-    leaderComment?: string
-  ) => void
-  addProjectNote: (id: string, note: string) => void
-  updateProjectLinks: (id: string, links: string[]) => void
-  deleteProject: (id: string) => void
+  addProject: (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  updateProjectStatus: (id: string, status: ProjectStatus, leaderComment?: string) => Promise<void>
+  addProjectNote: (id: string, note: string) => Promise<void>
+  updateProjectLinks: (id: string, links: string[]) => Promise<void>
+  deleteProject: (id: string) => Promise<void>
 
-  // Leave requests
-  addLeaveRequest: (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => void
-  updateLeaveStatus: (id: string, status: LeaveStatus) => void
+  addLeaveRequest: (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => Promise<void>
+  updateLeaveStatus: (id: string, status: LeaveStatus) => Promise<void>
 
-  // Reports
-  addReport: (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => void
-  updateReportStatus: (id: string, status: ReportStatus, response?: string) => void
-  deleteReport: (id: string) => void
+  addReport: (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => Promise<void>
+  updateReportStatus: (id: string, status: ReportStatus, response?: string) => Promise<void>
+  deleteReport: (id: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({} as DataContextValue)
 
-function generateId() {
-  return Math.random().toString(36).slice(2, 10)
-}
-
-const STORAGE_KEY = "hc-portal-data"
-
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [users, setUsers] = useState<User[]>(mockUsers)
-  const [meetings, setMeetings] = useState<Meeting[]>(mockMeetings)
-  const [projects, setProjects] = useState<Project[]>(mockProjects)
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(mockLeaveRequests)
-  const [reports, setReports] = useState<ProblemReport[]>(mockReports)
-  const [initialized, setInitialized] = useState(false)
+  const [users, setUsers] = useState<User[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
+  const [reports, setReports] = useState<ProblemReport[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Load from localStorage
+  // ── Initial Load ──────────────────────────────────────────────────────────
+  async function loadAll() {
+    setIsLoading(true)
+    const [
+      { data: usersData },
+      { data: meetingsData },
+      { data: attendanceData },
+      { data: projectsData },
+      { data: leaveData },
+      { data: reportsData },
+    ] = await Promise.all([
+      supabase.from("club_users").select("*"),
+      supabase.from("meetings").select("*").order("date"),
+      supabase.from("attendance").select("*"),
+      supabase.from("projects").select("*").order("updated_at", { ascending: false }),
+      supabase.from("leave_requests").select("*").order("created_at", { ascending: false }),
+      supabase.from("problem_reports").select("*").order("created_at", { ascending: false }),
+    ])
+
+    setUsers((usersData ?? []).map(mapUser))
+    const att = attendanceData ?? []
+    setMeetings((meetingsData ?? []).map((r) => mapMeeting(r, att)))
+    setProjects((projectsData ?? []).map(mapProject))
+    setLeaveRequests((leaveData ?? []).map(mapLeaveRequest))
+    setReports((reportsData ?? []).map(mapReport))
+    setIsLoading(false)
+  }
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        try {
-          const data = JSON.parse(stored)
-          // We only restore stateful data if it exists and is not empty
-          // This allows new mock meetings to seed if the current storage is empty
-          if (data.meetings && data.meetings.length > 0) setMeetings(data.meetings)
-          if (data.projects && data.projects.length > 0) setProjects(data.projects)
-          if (data.leaveRequests && data.leaveRequests.length > 0) setLeaveRequests(data.leaveRequests)
-          if (data.reports && data.reports.length > 0) setReports(data.reports)
-          if (data.users && data.users.length > 0) setUsers(data.users)
-        } catch (e) {
-          console.error("Failed to parse stored data", e)
-        }
-      }
-      setInitialized(true)
-    }
+    loadAll()
+
+    // Real-time subscriptions — reload affected slice on any change
+    const channels = [
+      supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, loadAll),
+      supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, loadAll),
+      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, loadAll),
+      supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, loadAll),
+      supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, loadAll),
+      supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, loadAll),
+    ]
+
+    channels.forEach((c) => c.subscribe())
+    return () => { channels.forEach((c) => supabase.removeChannel(c)) }
   }, [])
 
-  // Save to localStorage
-  useEffect(() => {
-    if (initialized && typeof window !== "undefined") {
-      const data = { users, meetings, projects, leaveRequests, reports }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    }
-  }, [users, meetings, projects, leaveRequests, reports, initialized])
-
-  // ─── Members ─────────────────────────────────────────────────────────────
-  const addMember = useCallback((member: Omit<User, "id" | "role" | "joinDate">) => {
-    const newUser: User = {
-      ...member,
-      id: `member-${generateId()}`,
+  // ─── Members ──────────────────────────────────────────────────────────────
+  const addMember = useCallback(async (member: Omit<User, "id" | "role" | "joinDate">) => {
+    await supabase.from("club_users").insert({
+      name: member.name,
+      email: member.email,
       role: "member",
-      joinDate: new Date().toISOString().split("T")[0],
-    }
-    setUsers((prev) => [...prev, newUser])
+      join_date: today(),
+      tags: member.tags ?? [],
+    })
   }, [])
 
-  const removeMember = useCallback((id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id))
+  const removeMember = useCallback(async (id: string) => {
+    await supabase.from("club_users").delete().eq("id", id)
   }, [])
 
-  const updateMemberTags = useCallback((id: string, tags: string[]) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, tags } : u)))
+  const updateMemberTags = useCallback(async (id: string, tags: string[]) => {
+    await supabase.from("club_users").update({ tags }).eq("id", id)
   }, [])
 
-  // ─── Attendance ───────────────────────────────────────────────────────────
-  const addMeeting = useCallback((meeting: Omit<Meeting, "id" | "attendance">) => {
-    const newMeeting: Meeting = {
-      ...meeting,
+  // ─── Meetings ─────────────────────────────────────────────────────────────
+  const addMeeting = useCallback(async (meeting: Omit<Meeting, "id" | "attendance">) => {
+    await supabase.from("meetings").insert({
       id: `meet-${generateId()}`,
-      attendance: [],
-    }
-    setMeetings((prev) => [...prev, newMeeting])
+      title: meeting.title,
+      date: meeting.date,
+      description: meeting.description,
+    })
   }, [])
 
-  const markAttendance = useCallback(
-    (meetingId: string, userId: string, status: AttendanceStatus) => {
-      setMeetings((prev) =>
-        prev.map((m) => {
-          if (m.id !== meetingId) return m
-          const existing = m.attendance.find((a) => a.userId === userId)
-          return {
-            ...m,
-            attendance: existing
-              ? m.attendance.map((a) =>
-                a.userId === userId ? { ...a, status } : a
-              )
-              : [...m.attendance, { id: `att-${generateId()}`, meetingId, userId, status }],
-          }
-        })
-      )
-    },
-    []
-  )
+  const markAttendance = useCallback(async (meetingId: string, userId: string, status: AttendanceStatus) => {
+    await supabase.from("attendance").upsert({
+      id: `att-${meetingId}-${userId}`,
+      meeting_id: meetingId,
+      user_id: userId,
+      status,
+    }, { onConflict: "id" })
+  }, [])
 
-  const saveMeetingAttendance = useCallback(
-    (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => {
-      setMeetings((prev) =>
-        prev.map((m) => {
-          if (m.id !== meetingId) return m
-          return {
-            ...m,
-            attendance: records.map(r => ({
-              id: `att-${generateId()}`,
-              meetingId,
-              userId: r.userId,
-              status: r.status
-            }))
-          }
-        })
+  const saveMeetingAttendance = useCallback(async (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => {
+    // Delete existing attendance for this meeting, then insert fresh
+    await supabase.from("attendance").delete().eq("meeting_id", meetingId)
+    if (records.length > 0) {
+      await supabase.from("attendance").insert(
+        records.map((r) => ({
+          id: `att-${meetingId}-${r.userId}`,
+          meeting_id: meetingId,
+          user_id: r.userId,
+          status: r.status,
+        }))
       )
-    },
-    []
-  )
+    }
+  }, [])
 
   // ─── Projects ─────────────────────────────────────────────────────────────
-  const addProject = useCallback(
-    (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => {
-      const now = new Date().toISOString().split("T")[0]
-      setProjects((prev) => [
-        ...prev,
-        { ...project, id: `proj-${generateId()}`, createdAt: now, updatedAt: now },
-      ])
-    },
-    []
-  )
-
-  const updateProjectStatus = useCallback(
-    (id: string, status: ProjectStatus, leaderComment?: string) => {
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? {
-              ...p,
-              status,
-              updatedAt: new Date().toISOString().split("T")[0],
-              ...(leaderComment !== undefined ? { leaderComment } : {}),
-            }
-            : p
-        )
-      )
-    },
-    []
-  )
-
-  const addProjectNote = useCallback((id: string, note: string) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-            ...p,
-            progressNotes: [...(p.progressNotes ?? []), note],
-            updatedAt: new Date().toISOString().split("T")[0],
-          }
-          : p
-      )
-    )
+  const addProject = useCallback(async (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => {
+    const now = today()
+    await supabase.from("projects").insert({
+      id: `proj-${generateId()}`,
+      title: project.title,
+      description: project.description,
+      status: project.status,
+      created_by: project.createdBy,
+      member_ids: project.memberIds,
+      is_group: project.isGroup,
+      category: project.category,
+      type: project.type,
+      links: project.links,
+      image_url: project.imageUrl,
+      progress_notes: project.progressNotes ?? [],
+      created_at: now,
+      updated_at: now,
+    })
   }, [])
 
-  const updateProjectLinks = useCallback((id: string, links: string[]) => {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, links, updatedAt: new Date().toISOString().split("T")[0] } : p))
-    )
+  const updateProjectStatus = useCallback(async (id: string, status: ProjectStatus, leaderComment?: string) => {
+    const update: Record<string, unknown> = { status, updated_at: today() }
+    if (leaderComment !== undefined) update.leader_comment = leaderComment
+    await supabase.from("projects").update(update).eq("id", id)
   }, [])
 
-  const deleteProject = useCallback((id: string) => {
-    setProjects((prev) => prev.filter((p) => p.id !== id))
+  const addProjectNote = useCallback(async (id: string, note: string) => {
+    const existing = projects.find((p) => p.id === id)
+    const notes = [...(existing?.progressNotes ?? []), note]
+    await supabase.from("projects").update({ progress_notes: notes, updated_at: today() }).eq("id", id)
+  }, [projects])
+
+  const updateProjectLinks = useCallback(async (id: string, links: string[]) => {
+    await supabase.from("projects").update({ links, updated_at: today() }).eq("id", id)
+  }, [])
+
+  const deleteProject = useCallback(async (id: string) => {
+    await supabase.from("projects").delete().eq("id", id)
   }, [])
 
   // ─── Leave Requests ───────────────────────────────────────────────────────
-  const addLeaveRequest = useCallback(
-    (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => {
-      setLeaveRequests((prev) => [
-        ...prev,
-        {
-          ...req,
-          id: `leave-${generateId()}`,
-          status: "pending",
-          createdAt: new Date().toISOString().split("T")[0],
-        },
-      ])
-    },
-    []
-  )
+  const addLeaveRequest = useCallback(async (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => {
+    await supabase.from("leave_requests").insert({
+      id: `leave-${generateId()}`,
+      user_id: req.userId,
+      meeting_id: req.meetingId,
+      reason: req.reason,
+      status: "pending",
+      created_at: today(),
+    })
+  }, [])
 
-  const updateLeaveStatus = useCallback((id: string, status: LeaveStatus) => {
-    setLeaveRequests((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status } : l))
-    )
+  const updateLeaveStatus = useCallback(async (id: string, status: LeaveStatus) => {
+    await supabase.from("leave_requests").update({ status }).eq("id", id)
   }, [])
 
   // ─── Reports ──────────────────────────────────────────────────────────────
-  const addReport = useCallback(
-    (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => {
-      const now = new Date().toISOString().split("T")[0]
-      setReports((prev) => [
-        ...prev,
-        { ...report, id: `report-${generateId()}`, status: "open", createdAt: now, updatedAt: now },
-      ])
-    },
-    []
-  )
+  const addReport = useCallback(async (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => {
+    const now = today()
+    await supabase.from("problem_reports").insert({
+      id: `report-${generateId()}`,
+      user_id: report.userId,
+      title: report.title,
+      description: report.description,
+      category: report.category,
+      status: "open",
+      created_at: now,
+      updated_at: now,
+    })
+  }, [])
 
-  const updateReportStatus = useCallback(
-    (id: string, status: ReportStatus, response?: string) => {
-      setReports((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-              ...r,
-              status,
-              updatedAt: new Date().toISOString().split("T")[0],
-              ...(response !== undefined ? { leaderResponse: response } : {}),
-            }
-            : r
-        )
-      )
-    },
-    []
-  )
+  const updateReportStatus = useCallback(async (id: string, status: ReportStatus, response?: string) => {
+    const update: Record<string, unknown> = { status, updated_at: today() }
+    if (response !== undefined) update.leader_response = response
+    await supabase.from("problem_reports").update(update).eq("id", id)
+  }, [])
 
-  const deleteReport = useCallback((id: string) => {
-    setReports((prev) => prev.filter((r) => r.id !== id))
+  const deleteReport = useCallback(async (id: string) => {
+    await supabase.from("problem_reports").delete().eq("id", id)
   }, [])
 
   return (
@@ -305,6 +336,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         projects,
         leaveRequests,
         reports,
+        isLoading,
         addMember,
         removeMember,
         updateMemberTags,
@@ -327,7 +359,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     </DataContext.Provider>
   )
 }
-
 
 export function useData() {
   return useContext(DataContext)

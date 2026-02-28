@@ -48,12 +48,12 @@ export default function MemberReportsPage() {
   const [desc, setDesc] = useState("")
   const [category, setCategory] = useState("")
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim() || !desc.trim() || !category) {
       toast.error("Please fill in all fields.")
       return
     }
-    addReport({ userId: user.id, title: title.trim(), description: desc.trim(), category })
+    await addReport({ userId: user!.id, title: title.trim(), description: desc.trim(), category })
     toast.success("Report submitted! Leaders have been notified.")
     setTitle(""); setDesc(""); setCategory("")
     setOpen(false)
