@@ -170,6 +170,9 @@ export default function LeaderProjectsPage() {
             <p className="text-sm text-muted-foreground">{selected.description}</p>
 
             <div className="space-y-1 text-sm">
+              <p><span className="font-semibold">Proposed by:</span>{" "}
+                <span className="text-[#338eda] font-medium">{getMemberName(selected.createdBy)}</span>
+              </p>
               <p><span className="font-semibold">Category:</span> {selected.category}</p>
               <p><span className="font-semibold">Type:</span> {selected.type}</p>
               <p>
