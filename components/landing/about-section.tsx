@@ -26,16 +26,16 @@ const values = [
 
 const team = [
   {
-    name: "Dhyaan Manganahalli",
-    role: "Founder & Leader",
-    gradient: "linear-gradient(135deg, #ec3750, #ff8c37)",
-    initial: "D",
-  },
-  {
     name: "Akshit Aggarwal",
     role: "Co-Founder & Leader",
     gradient: "linear-gradient(135deg, #338eda, #a633d6)",
     initial: "A",
+  },
+  {
+    name: "Dhyaan Manganahalli",
+    role: "Founder & Leader",
+    gradient: "linear-gradient(135deg, #ec3750, #ff8c37)",
+    initial: "D",
   },
   {
     name: "Ms Titus",
