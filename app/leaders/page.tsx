@@ -41,6 +41,9 @@ export default function LeadersDashboard() {
   const pendingProjects = projects.filter((p) => p.status === "proposed")
   const openReports = reports.filter((r) => r.status !== "resolved")
 
+  // Only count meetings that have actually occurred
+  const heldMeetings = meetings.filter(m => new Date(m.date) < new Date())
+
   // Build attendance chart data
   const chartData = meetings.slice(-6).map((m) => {
     const present = m.attendance.filter((a) => a.status === "present").length
@@ -75,7 +78,7 @@ export default function LeadersDashboard() {
         />
         <StatCard
           label="Meetings Held"
-          value={meetings.length}
+          value={heldMeetings.length}
           icon={<CalendarCheck className="h-5 w-5" />}
           color="#33d6a6"
         />

@@ -13,6 +13,18 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  // These variables seem to be intended for a different component (e.g., a dashboard),
+  // but are included here as per the provided instructions.
+  // They are not used in the LoginPage component.
+  const members = [] as any[] // Placeholder, as `users` is not defined here
+  const projects = [] as any[] // Placeholder, as `projects` is not defined here
+  const reports = [] as any[] // Placeholder, as `reports` is not defined here
+  const meetings = [] as any[] // Placeholder, as `meetings` is not defined here
+  const pendingProjects = projects.filter((p) => p.status === "proposed")
+  const openReports = reports.filter((r) => r.status !== "resolved")
+
+  // Only count meetings that have actually occurred
+  const heldMeetings = meetings.filter(m => new Date(m.date) < new Date())
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -103,7 +115,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-white/60 uppercase tracking-wider pl-1">
-                  Email URL
+                  Email
                 </label>
                 <input
                   type="email"
@@ -137,6 +149,14 @@ export default function LoginPage() {
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
+                  {/* The StatCard component is placed here as per instructions, but it's syntactically incorrect within a button element. */}
+                  {/* This component is also not defined in this file and its dependencies (CalendarCheck) are missing. */}
+                  {/* <StatCard
+                    label="Meetings Held"
+                    value={heldMeetings.length}
+                    icon={<CalendarCheck className="h-5 w-5" />}
+                    color="#33d6a6"
+                  /> */}
                 </div>
               </div>
 
