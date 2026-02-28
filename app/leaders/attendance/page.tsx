@@ -191,7 +191,7 @@ export default function AttendancePage() {
             <SelectContent>
               {[...meetings].reverse().map((m) => (
                 <SelectItem key={m.id} value={m.id}>
-                  {m.title} —{" "}
+                  {m.title} -{" "}
                   {new Date(m.date).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",

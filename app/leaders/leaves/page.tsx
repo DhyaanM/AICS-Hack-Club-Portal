@@ -112,7 +112,7 @@ export default function LeaderLeavesPage() {
                                         {getMemberName(leave.userId)}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {getMeetingTitle(leave.meetingId)} — {leave.status}
+                                        {getMeetingTitle(leave.meetingId)} - {leave.status}
                                     </p>
                                 </div>
                                 <Badge

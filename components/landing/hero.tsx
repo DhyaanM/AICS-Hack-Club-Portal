@@ -99,7 +99,7 @@ export function Hero() {
             <p className="mt-6 max-w-xl text-lg text-white/60 lg:text-xl">
               AICS Hack Club is where students at the Amsterdam International
               Community School build real projects, explore technology, and grow
-              together — no experience required.
+              together - no experience required.
             </p>
 
             <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">

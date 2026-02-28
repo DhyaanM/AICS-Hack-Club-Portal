@@ -176,7 +176,7 @@ export default function MembersPage() {
                     <div className="hidden sm:flex flex-col items-end gap-1">
                       <span className="text-xs text-muted-foreground">Attendance</span>
                       <span className="text-sm font-bold" style={{ color: pctColor }}>
-                        {pct !== null ? `${pct}%` : "—"}
+                        {pct !== null ? `${pct}%` : "-"}
                       </span>
                     </div>
 

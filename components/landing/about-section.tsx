@@ -6,14 +6,14 @@ const values = [
     label: "Build",
     color: "#ec3750",
     bg: "rgba(236,55,80,0.12)",
-    desc: "Ship real projects. Every member leaves with something they can point to and be proud of — a web app, a game, a hardware hack, or an AI tool.",
+    desc: "Ship real projects. Every member leaves with something they can point to and be proud of - a web app, a game, a hardware hack, or an AI tool.",
   },
   {
     icon: Brain,
     label: "Learn",
     color: "#338eda",
     bg: "rgba(51,142,218,0.12)",
-    desc: "Workshops on web dev, AI/ML, hardware, cybersecurity, and more — run by members, for members. No lectures, just hands-on exploration.",
+    desc: "Workshops on web dev, AI/ML, hardware, cybersecurity, and more - run by members, for members. No lectures, just hands-on exploration.",
   },
   {
     icon: Rocket,

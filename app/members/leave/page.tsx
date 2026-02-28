@@ -87,7 +87,7 @@ export default function LeavePage() {
                   <option value="">Select a meeting…</option>
                   {available.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.title} — {new Date(m.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {m.title} - {new Date(m.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </option>
                   ))}
                 </select>

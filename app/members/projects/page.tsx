@@ -149,7 +149,7 @@ export default function MemberProjectsPage() {
       {myProjects.length === 0 ? (
         <div className="py-16 text-center">
           <FolderKanban className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <p className="mt-3 text-sm text-muted-foreground">No projects yet — submit a proposal to get started!</p>
+          <p className="mt-3 text-sm text-muted-foreground">No projects yet - submit a proposal to get started!</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

@@ -57,7 +57,7 @@ export function ProjectShowcase() {
         {/* Grid */}
         {filtered.length === 0 ? (
           <p className="py-16 text-center text-muted-foreground">
-            No completed projects in this category yet — check back soon!
+            No completed projects in this category yet - check back soon!
           </p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

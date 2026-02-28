@@ -65,7 +65,7 @@ export function ApplySection() {
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             Applications are open to all AICS students. No coding experience
-            required — just curiosity and enthusiasm.
+            required - just curiosity and enthusiasm.
           </p>
         </div>
 
