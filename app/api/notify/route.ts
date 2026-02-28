@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
         const { data, error } = await resend.emails.send({
             from: 'AICS Hack Club <onboarding@resend.dev>',
-            to: ['s936832@aics.espritscholen.nl'],
+            to: ['dhyaanmanganahalli@gmail.com'],
             subject,
             text,
         })
