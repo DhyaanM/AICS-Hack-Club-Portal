@@ -12,9 +12,22 @@
       "src": "https://assets.hackclub.com/icon-square.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "https://assets.hackclub.com/icon-square.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://assets.hackclub.com/icon-square.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "lang": "en"
 }
