@@ -49,13 +49,23 @@ export default function LeadersDashboard() {
   // Only count meetings that have actually occurred
   const heldMeetings = sortedMeetings.filter(m => new Date(m.date) < new Date())
 
-  // Build attendance chart data (last 6 chronological meetings)
-  const chartData = sortedMeetings.slice(-6).map((m) => {
+  // Only chart meetings that have at least one valid attendance mark
+  const meetingsWithAttendance = sortedMeetings.filter((m) =>
+    m.attendance.some((a) => a.status !== "n/a" && a.status !== "absent" && a.status !== "excused" && a.status !== "present" && a.status !== "late" ? false : true) &&
+    m.attendance.some((a) => a.status === "present" || a.status === "late" || a.status === "absent" || a.status === "excused")
+  )
+
+  // Build attendance chart data (up to last 6 meetings that have attendance)
+  // Number them chronologically based on their overall position in meetingsWithAttendance
+  const recentMeetings = meetingsWithAttendance.slice(-6)
+  const startIndex = Math.max(0, meetingsWithAttendance.length - 6)
+
+  const chartData = recentMeetings.map((m, idx) => {
     const present = m.attendance.filter((a) => a.status === "present").length
     const late = m.attendance.filter((a) => a.status === "late").length
     const absent = m.attendance.filter((a) => a.status === "absent").length
     return {
-      name: m.title.length > 12 ? m.title.substring(0, 12) + "..." : m.title,
+      name: `Meeting ${startIndex + idx + 1}`,
       Present: present,
       Late: late,
       Absent: absent,
