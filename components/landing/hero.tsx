@@ -125,9 +125,9 @@ export function Hero() {
             {/* Stats row */}
             <div className="mt-12 flex flex-wrap justify-center gap-8 lg:justify-start">
               {[
-                { label: "Active Members", value: "10+" },
-                { label: "Projects Built", value: "6+" },
-                { label: "Meetings Held", value: "8+" },
+                { label: "Active Members", value: "0" },
+                { label: "Projects Built", value: "0" },
+                { label: "Meetings Held", value: "0" },
               ].map((s) => (
                 <div key={s.label} className="text-center lg:text-left">
                   <p className="text-3xl font-extrabold text-white">{s.value}</p>
