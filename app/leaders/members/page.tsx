@@ -42,7 +42,7 @@ function getAttendancePct(userId: string, meetings: { attendance: { userId: stri
 }
 
 export default function MembersPage() {
-  const { users, meetings, addMember, removeMember } = useData()
+  const { users, meetings, addMember, removeMember, updateMemberName } = useData()
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [newName, setNewName] = useState("")
@@ -78,7 +78,7 @@ export default function MembersPage() {
 
   async function handleEdit() {
     if (!editId || !editName.trim()) return
-    await useData().updateMemberName(editId, editName.trim())
+    await updateMemberName(editId, editName.trim())
     toast.success("Name updated!")
     setEditId(null)
   }
