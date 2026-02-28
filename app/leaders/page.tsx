@@ -41,11 +41,16 @@ export default function LeadersDashboard() {
   const pendingProjects = projects.filter((p) => p.status === "proposed")
   const openReports = reports.filter((r) => r.status !== "resolved")
 
-  // Only count meetings that have actually occurred
-  const heldMeetings = meetings.filter(m => new Date(m.date) < new Date())
+  // Sort chronologically (oldest first)
+  const sortedMeetings = [...meetings].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  )
 
-  // Build attendance chart data
-  const chartData = meetings.slice(-6).map((m) => {
+  // Only count meetings that have actually occurred
+  const heldMeetings = sortedMeetings.filter(m => new Date(m.date) < new Date())
+
+  // Build attendance chart data (last 6 chronological meetings)
+  const chartData = sortedMeetings.slice(-6).map((m) => {
     const present = m.attendance.filter((a) => a.status === "present").length
     const late = m.attendance.filter((a) => a.status === "late").length
     const absent = m.attendance.filter((a) => a.status === "absent").length
