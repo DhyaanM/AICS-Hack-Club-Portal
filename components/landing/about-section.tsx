@@ -26,16 +26,17 @@ const values = [
 
 const team = [
   {
+    name: "Dhyaan Manganahalli",
+    role: "Founder & President + Technical Director",
+    gradient: "linear-gradient(135deg, #ec3750, #ff8c37)",
+    initial: "D",
+    isLeader: true,
+  },
+  {
     name: "Akshit Aggarwal",
     role: "Co-Founder & Leader",
     gradient: "linear-gradient(135deg, #338eda, #a633d6)",
     initial: "A",
-  },
-  {
-    name: "Dhyaan Manganahalli",
-    role: "Founder & Leader",
-    gradient: "linear-gradient(135deg, #ec3750, #ff8c37)",
-    initial: "D",
   },
   {
     name: "Ms Titus",
@@ -96,20 +97,26 @@ export function AboutSection() {
         <div className="text-center">
           <h3 className="mb-2 text-2xl font-bold text-foreground">Meet the Team</h3>
           <p className="mb-10 text-muted-foreground">The people who make it happen.</p>
-          <div className="flex flex-wrap justify-center gap-8">
+          <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-12">
             {team.map((person) => (
               <div
                 key={person.name}
-                className="spring-hover-sm group relative flex flex-col items-center justify-center rounded-3xl border border-transparent p-6 transition-all hover:bg-muted/40 hover:border-border/50 text-center w-48"
+                className={`spring-hover-sm group relative flex flex-col items-center justify-center rounded-3xl border border-transparent p-6 transition-all hover:bg-muted/40 hover:border-border/50 text-center ${person.isLeader ? "w-56" : "w-48"
+                  }`}
               >
                 <div
-                  className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full text-2xl font-extrabold text-white shadow-lg transition-transform group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+                  className={`mx-auto mb-4 flex items-center justify-center rounded-full font-extrabold text-white shadow-lg transition-transform group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${person.isLeader ? "h-24 w-24 text-3xl" : "h-20 w-20 text-2xl"
+                    }`}
                   style={{ background: person.gradient }}
                 >
                   {person.initial}
                 </div>
-                <p className="font-semibold text-foreground">{person.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{person.role}</p>
+                <p className={`font-semibold text-foreground ${person.isLeader ? "text-lg" : "text-base"}`}>
+                  {person.name}
+                </p>
+                <p className={`mt-1 text-muted-foreground ${person.isLeader ? "text-xs" : "text-[10px]"}`}>
+                  {person.role}
+                </p>
               </div>
             ))}
           </div>
