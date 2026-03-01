@@ -138,7 +138,12 @@ export function DashboardShell({
               <p className="truncate text-sm font-semibold text-sidebar-foreground">
                 {user.name}
               </p>
-              <p className="truncate text-xs text-muted-foreground capitalize">{user.role}</p>
+              <p className="truncate text-xs text-muted-foreground capitalize">
+                {(user.email?.toLowerCase() === "s936832@aics.espritscholen.nl" ||
+                  user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com")
+                  ? "Founder + President"
+                  : user.role}
+              </p>
             </div>
           </div>
         )}
