@@ -31,18 +31,21 @@ const team = [
     gradient: "linear-gradient(135deg, #ec3750, #ff8c37)",
     initial: "D",
     isLeader: true,
+    order: "order-1 lg:order-2",
   },
   {
     name: "Akshit Aggarwal",
     role: "Co-Founder & Leader",
     gradient: "linear-gradient(135deg, #338eda, #a633d6)",
     initial: "A",
+    order: "order-2 lg:order-1",
   },
   {
     name: "Ms Titus",
     role: "Teacher Supervisor",
     gradient: "linear-gradient(135deg, #33d6a6, #338eda)",
     initial: "T",
+    order: "order-3 lg:order-3",
   },
 ]
 
@@ -97,24 +100,24 @@ export function AboutSection() {
         <div className="text-center">
           <h3 className="mb-2 text-2xl font-bold text-foreground">Meet the Team</h3>
           <p className="mb-10 text-muted-foreground">The people who make it happen.</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-12">
+          <div className="flex flex-wrap justify-center items-center gap-10 lg:gap-16">
             {team.map((person) => (
               <div
                 key={person.name}
-                className={`spring-hover-sm group relative flex flex-col items-center justify-center rounded-3xl border border-transparent p-6 transition-all hover:bg-muted/40 hover:border-border/50 text-center ${person.isLeader ? "w-56" : "w-48"
-                  }`}
+                className={`spring-hover-sm group relative flex flex-col items-center justify-center rounded-3xl border border-transparent p-6 transition-all hover:bg-muted/40 hover:border-border/50 text-center ${person.order
+                  } ${person.isLeader ? "w-64 lg:scale-125 z-10" : "w-48 opacity-80 lg:opacity-100"}`}
               >
                 <div
-                  className={`mx-auto mb-4 flex items-center justify-center rounded-full font-extrabold text-white shadow-lg transition-transform group-hover:scale-105 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${person.isLeader ? "h-24 w-24 text-3xl" : "h-20 w-20 text-2xl"
+                  className={`mx-auto mb-6 flex items-center justify-center rounded-full font-extrabold text-white shadow-lg transition-all group-hover:scale-110 group-hover:shadow-[0_12px_40px_rgba(236,55,80,0.3)] ${person.isLeader ? "h-32 w-32 text-4xl shadow-[0_4px_20px_rgba(236,55,80,0.2)]" : "h-20 w-20 text-2xl"
                     }`}
                   style={{ background: person.gradient }}
                 >
                   {person.initial}
                 </div>
-                <p className={`font-semibold text-foreground ${person.isLeader ? "text-lg" : "text-base"}`}>
+                <p className={`font-bold text-foreground ${person.isLeader ? "text-2xl tracking-tight" : "text-base"}`}>
                   {person.name}
                 </p>
-                <p className={`mt-1 text-muted-foreground ${person.isLeader ? "text-xs" : "text-[10px]"}`}>
+                <p className={`mt-2 font-medium text-muted-foreground ${person.isLeader ? "text-sm" : "text-[10px]"}`}>
                   {person.role}
                 </p>
               </div>
