@@ -105,19 +105,19 @@ export function AboutSection() {
               <div
                 key={person.name}
                 className={`spring-hover-sm group relative flex flex-col items-center justify-center rounded-3xl border border-transparent p-6 transition-all hover:bg-muted/40 hover:border-border/50 text-center ${person.order
-                  } ${person.isLeader ? "w-64 lg:scale-125 z-10" : "w-48 opacity-80 lg:opacity-100"}`}
+                  } ${person.isLeader ? "w-80 lg:scale-110 z-10" : "w-60 lg:scale-105"}`}
               >
                 <div
-                  className={`mx-auto mb-6 flex items-center justify-center rounded-full font-extrabold text-white shadow-lg transition-all group-hover:scale-110 group-hover:shadow-[0_12px_40px_rgba(236,55,80,0.3)] ${person.isLeader ? "h-32 w-32 text-4xl shadow-[0_4px_20px_rgba(236,55,80,0.2)]" : "h-20 w-20 text-2xl"
+                  className={`mx-auto mb-6 flex items-center justify-center rounded-full font-extrabold text-white shadow-lg transition-all group-hover:scale-110 group-hover:shadow-[0_12px_40px_rgba(236,55,80,0.3)] ${person.isLeader ? "h-40 w-40 text-5xl shadow-[0_8px_30px_rgba(236,55,80,0.2)]" : "h-28 w-28 text-3xl shadow-[0_4px_15px_rgba(0,0,0,0.1)]"
                     }`}
                   style={{ background: person.gradient }}
                 >
                   {person.initial}
                 </div>
-                <p className={`font-bold text-foreground ${person.isLeader ? "text-2xl tracking-tight" : "text-base"}`}>
+                <p className={`font-bold text-foreground ${person.isLeader ? "text-3xl tracking-tight" : "text-xl"}`}>
                   {person.name}
                 </p>
-                <p className={`mt-2 font-medium text-muted-foreground ${person.isLeader ? "text-sm" : "text-[10px]"}`}>
+                <p className={`mt-2 font-medium text-muted-foreground ${person.isLeader ? "text-base" : "text-xs"}`}>
                   {person.role}
                 </p>
               </div>
