@@ -143,7 +143,7 @@ export function DashboardShell({
                   user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com"
                   ? "Founder + President"
                   : user.email?.toLowerCase() === "s936404@aics.espritscholen.nl"
-                    ? "Jobless Fellow"
+                    ? "Jobless Fellow" // Joke role for Akshit
                     : user.role}
               </p>
             </div>
