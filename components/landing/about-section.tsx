@@ -35,7 +35,7 @@ const team = [
   },
   {
     name: "Akshit Aggarwal",
-    role: "Co-Founder & Leader",
+    role: "Co-Founder + Lead of Operations",
     gradient: "linear-gradient(135deg, #338eda, #a633d6)",
     initial: "A",
     order: "order-2 lg:order-1",
