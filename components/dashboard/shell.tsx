@@ -139,10 +139,12 @@ export function DashboardShell({
                 {user.name}
               </p>
               <p className="truncate text-xs text-muted-foreground capitalize">
-                {(user.email?.toLowerCase() === "s936832@aics.espritscholen.nl" ||
-                  user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com")
+                {user.email?.toLowerCase() === "s936832@aics.espritscholen.nl" ||
+                  user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com"
                   ? "Founder + President"
-                  : user.role}
+                  : user.email?.toLowerCase() === "s936404@aics.espritscholen.nl"
+                    ? "Jobless Fellow"
+                    : user.role}
               </p>
             </div>
           </div>
