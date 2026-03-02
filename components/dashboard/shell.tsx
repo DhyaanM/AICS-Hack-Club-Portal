@@ -138,13 +138,18 @@ export function DashboardShell({
               <p className="truncate text-sm font-semibold text-sidebar-foreground">
                 {user.name}
               </p>
-              <p className="truncate text-xs text-muted-foreground capitalize">
-                {user.email?.toLowerCase() === "s936832@aics.espritscholen.nl" ||
-                  user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com"
-                  ? "Founder + President"
-                  : user.email?.toLowerCase() === "s936404@aics.espritscholen.nl"
-                    ? "Jobless Fellow" // Joke role for Akshit
-                    : user.role}
+              <p className="truncate text-xs text-muted-foreground">
+                {(() => {
+                  const email = user.email?.toLowerCase()
+                  if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
+                  if (email === "s936404@aics.espritscholen.nl") return "Jobless Fellow"
+                  if (email === "s932344@aics.espritscholen.nl") return "CEO | Yamada Industries"
+                  if (email === "s929175@aics.espritscholen.nl") return "CEO | Bank of Sudhakar"
+                  if (email === "s933681@aics.espritscholen.nl") return "Approved By The Singh Community"
+                  if (email === "daksh.prasad@aics.espritscholen.nl") return "Just A Regular Member"
+                  if (email === "s936724@aics.espritscholen.nl") return "Part of The Top 1%"
+                  return user.role
+                })()}
               </p>
             </div>
           </div>

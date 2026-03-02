@@ -165,7 +165,22 @@ export default function MembersPage() {
                     {/* Info */}
                     <div className="flex-1 overflow-hidden">
                       <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+                      <div className="flex flex-col">
+                        <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+                        <p className="truncate text-[10px] font-medium text-[#ec3750]">
+                          {(() => {
+                            const email = member.email?.toLowerCase()
+                            if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
+                            if (email === "s936404@aics.espritscholen.nl") return "Jobless Fellow"
+                            if (email === "s932344@aics.espritscholen.nl") return "CEO | Yamada Industries"
+                            if (email === "s929175@aics.espritscholen.nl") return "CEO | Bank of Sudhakar"
+                            if (email === "s933681@aics.espritscholen.nl") return "Approved By The Singh Community"
+                            if (email === "daksh.prasad@aics.espritscholen.nl") return "Just A Regular Member"
+                            if (email === "s936724@aics.espritscholen.nl") return "Part of The Top 1%"
+                            return null
+                          })()}
+                        </p>
+                      </div>
                       {member.tags && member.tags.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {member.tags.map((tag) => (
