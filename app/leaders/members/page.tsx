@@ -42,13 +42,14 @@ function getAttendancePct(userId: string, meetings: { attendance: { userId: stri
 }
 
 export default function MembersPage() {
-  const { users, meetings, addMember, removeMember, updateMemberName } = useData()
+  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle } = useData()
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [newName, setNewName] = useState("")
   const [newEmail, setNewEmail] = useState("")
   const [editId, setEditId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
+  const [editTitle, setEditTitle] = useState("")
   const [removeId, setRemoveId] = useState<string | null>(null)
 
   const members = users.filter((u) => u.role === "member")
@@ -79,7 +80,8 @@ export default function MembersPage() {
   async function handleEdit() {
     if (!editId || !editName.trim()) return
     await updateMemberName(editId, editName.trim())
-    toast.success("Name updated!")
+    await updateMemberTitle(editId, editTitle.trim())
+    toast.success("Member updated!")
     setEditId(null)
   }
 
@@ -168,7 +170,7 @@ export default function MembersPage() {
                       <div className="flex flex-col">
                         <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                         <p className="truncate text-[10px] font-medium text-[#ec3750]">
-                          {(() => {
+                          {member.title || (() => {
                             const email = member.email?.toLowerCase()
                             if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
                             if (email === "s936404@aics.espritscholen.nl") return "Jobless Fellow"
@@ -212,7 +214,10 @@ export default function MembersPage() {
                     <div className="flex items-center gap-1">
                       {/* Edit */}
                       <Dialog open={editId === member.id} onOpenChange={(o) => {
-                        if (o) setEditName(member.name)
+                        if (o) {
+                          setEditName(member.name)
+                          setEditTitle(member.title || "")
+                        }
                         setEditId(o ? member.id : null)
                       }}>
                         <DialogTrigger asChild>
@@ -228,6 +233,10 @@ export default function MembersPage() {
                             <div className="space-y-1.5">
                               <label className="text-sm font-medium">Full Name</label>
                               <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Title</label>
+                              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. CEO | Yamada Industries" />
                             </div>
                             <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit}>
                               Save Changes

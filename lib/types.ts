@@ -8,6 +8,7 @@ export interface User {
   avatar?: string
   joinDate: string
   tags: string[]
+  title?: string
 }
 
 export type AttendanceStatus = "present" | "absent" | "late" | "excused" | "n/a"

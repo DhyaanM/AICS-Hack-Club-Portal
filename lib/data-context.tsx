@@ -41,6 +41,7 @@ function mapUser(row: Record<string, unknown>): User {
     role: row.role as "leader" | "member",
     joinDate: row.join_date as string,
     tags: (row.tags as string[]) ?? [],
+    title: row.title as string | undefined,
   }
 }
 
@@ -120,6 +121,7 @@ interface DataContextValue {
   removeMember: (id: string) => Promise<void>
   updateMemberName: (id: string, name: string) => Promise<void>
   updateMemberTags: (id: string, tags: string[]) => Promise<void>
+  updateMemberTitle: (id: string, title: string) => Promise<void>
 
   addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
   markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
@@ -215,6 +217,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateMemberTags = useCallback(async (id: string, tags: string[]) => {
     await supabase.from("club_users").update({ tags }).eq("id", id)
+  }, [])
+
+  const updateMemberTitle = useCallback(async (id: string, title: string) => {
+    await supabase.from("club_users").update({ title }).eq("id", id)
   }, [])
 
   // ─── Meetings ─────────────────────────────────────────────────────────────
@@ -368,6 +374,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         removeMember,
         updateMemberName,
         updateMemberTags,
+        updateMemberTitle,
         addMeeting,
         markAttendance,
         saveMeetingAttendance,

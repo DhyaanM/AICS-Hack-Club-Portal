@@ -139,7 +139,7 @@ export function DashboardShell({
                 {user.name}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {(() => {
+                {user.title || (() => {
                   const email = user.email?.toLowerCase()
                   if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
                   if (email === "s936404@aics.espritscholen.nl") return "Jobless Fellow"
