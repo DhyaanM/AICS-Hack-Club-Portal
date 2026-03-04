@@ -37,6 +37,7 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
         role: clubUser.role as "leader" | "member",
         joinDate: clubUser.join_date,
         tags: clubUser.tags ?? [],
+        title: clubUser.title,
       }
     }
 

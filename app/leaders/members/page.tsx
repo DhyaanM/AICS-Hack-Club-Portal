@@ -219,38 +219,40 @@ export default function MembersPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1">
-                      {/* Edit */}
-                      <Dialog open={editId === member.id} onOpenChange={(o) => {
-                        if (o) {
-                          setEditName(member.name)
-                          setEditTitle(member.title || "")
-                        }
-                        setEditId(o ? member.id : null)
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                            <span className="text-lg leading-none" style={{ marginTop: '-4px' }}>✎</span>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-sm">
-                          <DialogHeader>
-                            <DialogTitle>Edit Member Name</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 pt-2">
-                            <div className="space-y-1.5">
-                              <label className="text-sm font-medium">Full Name</label>
-                              <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-sm font-medium">Title</label>
-                              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. CEO | Yamada Industries" />
-                            </div>
-                            <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit}>
-                              Save Changes
+                      {/* Edit (Restricted to Dhyaan) */}
+                      {user?.email?.toLowerCase() === "s936832@aics.espritscholen.nl" && (
+                        <Dialog open={editId === member.id} onOpenChange={(o) => {
+                          if (o) {
+                            setEditName(member.name)
+                            setEditTitle(member.title || "")
+                          }
+                          setEditId(o ? member.id : null)
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                              <span className="text-lg leading-none" style={{ marginTop: '-4px' }}>✎</span>
                             </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle>Edit Member Name</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-2">
+                              <div className="space-y-1.5">
+                                <label className="text-sm font-medium">Full Name</label>
+                                <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-sm font-medium">Title</label>
+                                <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. CEO | Yamada Industries" />
+                              </div>
+                              <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit}>
+                                Save Changes
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
 
                       {/* Remove */}
                       <Dialog open={removeId === member.id} onOpenChange={(o) => setRemoveId(o ? member.id : null)}>
