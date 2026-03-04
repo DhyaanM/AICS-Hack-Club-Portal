@@ -29,6 +29,13 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
       .ilike("email", email)
       .maybeSingle()
 
+    // Hard Ban Check
+    const bannedEmails = (process.env.NEXT_PUBLIC_BANNED_EMAILS || "").toLowerCase().split(",")
+    if (bannedEmails.includes(email.toLowerCase())) {
+      console.warn("Banned user attempted to access the platform:", email)
+      return null
+    }
+
     if (clubUser && !error) {
       return {
         id: clubUser.id,
@@ -42,13 +49,6 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
     }
 
     // We only want to auto-create them if they are genuinely signing up.
-    // However, if they were deleted from `club_users` but still exist in Auth, 
-    // it means they were banned/removed by a leader. We should block them.
-    // Instead of auto-creating blindly, let's just return null if not found.
-    // The only issue is new members wouldn't be able to join.
-    // To distinguish, we should check if they were deleted.
-    // The easiest way to stop the bully right now is to block their specific email from being re-created.
-    const BANNED_EMAILS: string[] = [] // Emails added here or removed from club_users will be blocked
 
     // Instead of auto-creating users on EVERY single login that misses a row,
     // Let's just log them out if they don't have a row in club_users.
