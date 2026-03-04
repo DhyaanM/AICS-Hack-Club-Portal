@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useData } from "@/lib/data-context"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -43,6 +44,7 @@ function getAttendancePct(userId: string, meetings: { attendance: { userId: stri
 
 export default function MembersPage() {
   const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle } = useData()
+  const { user } = useAuth()
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [newName, setNewName] = useState("")
@@ -170,9 +172,19 @@ export default function MembersPage() {
                       <div className="flex flex-col">
                         <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                         <p className="truncate text-[10px] font-medium text-[#ec3750]">
-                          {member.title || (() => {
+                          {(() => {
                             const email = member.email?.toLowerCase()
-                            return null
+                            const isSupervisor = user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+
+                            // Leaders always get their real title regardless of who is looking
+                            if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
+                            if (email === "s936404@aics.espritscholen.nl") return "Co-Founder + Lead of Operations"
+                            if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
+
+                            // If the current viewer is the supervisor, hide joke titles and show "Member"
+                            if (isSupervisor) return "Member"
+
+                            return member.title || null
                           })()}
                         </p>
                       </div>
