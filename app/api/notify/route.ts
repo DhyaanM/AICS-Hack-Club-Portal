@@ -177,7 +177,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await resend.emails.send({
       from: 'AICS Hack Club <onboarding@resend.dev>',
-      to: ['dhyaanmanganahalli@gmail.com'],
+      to: [process.env.NOTIFY_EMAIL || 'dhyaanmanganahalli@gmail.com'],
       subject,
       text,
       html,

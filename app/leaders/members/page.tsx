@@ -179,8 +179,11 @@ export default function MembersPage() {
                             // Actually, the requirements say she should see akshit as lead of operations and dhyaan as founder.
                             const email = member.email?.toLowerCase()
                             if (isSupervisorViewer) {
-                              if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
-                              if (email === "s936404@aics.espritscholen.nl") return "Lead of Operations"
+                              const founderEmails = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",")
+                              const cofounderEmails = (process.env.NEXT_PUBLIC_COFOUNDER_EMAILS || "").toLowerCase().split(",")
+
+                              if (founderEmails.includes(email || "")) return "Founder + President"
+                              if (cofounderEmails.includes(email || "")) return "Lead of Operations"
                               if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
                               return "Member"
                             }
@@ -220,7 +223,7 @@ export default function MembersPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-1">
                       {/* Edit (Restricted to Dhyaan) */}
-                      {user?.email?.toLowerCase() === "s936832@aics.espritscholen.nl" && (
+                      {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(user?.email?.toLowerCase() || "") && (
                         <Dialog open={editId === member.id} onOpenChange={(o) => {
                           if (o) {
                             setEditName(member.name)

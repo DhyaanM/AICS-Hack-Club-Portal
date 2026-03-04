@@ -142,9 +142,11 @@ export function DashboardShell({
                 {user.title || (() => {
                   const email = user.email?.toLowerCase()
 
-                  // Specific hardcoded overrides if not set in DB
-                  if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
-                  if (email === "s936404@aics.espritscholen.nl") return "Lead of Operations"
+                  const founderEmails = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",")
+                  const cofounderEmails = (process.env.NEXT_PUBLIC_COFOUNDER_EMAILS || "").toLowerCase().split(",")
+
+                  if (founderEmails.includes(email)) return "Founder + President"
+                  if (cofounderEmails.includes(email)) return "Lead of Operations"
                   if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
 
                   return user.role

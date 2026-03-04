@@ -48,7 +48,7 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
     // The only issue is new members wouldn't be able to join.
     // To distinguish, we should check if they were deleted.
     // The easiest way to stop the bully right now is to block their specific email from being re-created.
-    const BANNED_EMAILS = ["akki17122009@gmail.com"] // Example placeholder for the bully, wait, I don't know the bully's email.
+    const BANNED_EMAILS: string[] = [] // Emails added here or removed from club_users will be blocked
 
     // Instead of auto-creating users on EVERY single login that misses a row,
     // Let's just log them out if they don't have a row in club_users.
