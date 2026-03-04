@@ -39,7 +39,7 @@ function initials(name: string) {
 
 export default function AttendancePage() {
   const { users, meetings, saveMeetingAttendance, addMeeting } = useData()
-  const members = users.filter((u) => u.role === "member")
+  const members = users
 
   const [selectedId, setSelectedId] = useState(meetings[meetings.length - 1]?.id ?? "")
   const [draft, setDraft] = useState<Record<string, AttendanceStatus>>({})

@@ -38,7 +38,7 @@ const reportStatusColors: Record<string, string> = {
 export default function LeadersDashboard() {
   const { users, meetings, projects, reports, leaveRequests } = useData()
 
-  const members = users.filter((u) => u.role === "member")
+  const members = users
   const pendingProjects = projects.filter((p) => p.status === "proposed")
   const openReports = reports.filter((r) => r.status !== "resolved")
   const pendingLeaves = leaveRequests.filter((l) => l.status === "pending")

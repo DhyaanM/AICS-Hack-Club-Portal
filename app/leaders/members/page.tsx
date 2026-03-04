@@ -54,7 +54,7 @@ export default function MembersPage() {
   const [editTitle, setEditTitle] = useState("")
   const [removeId, setRemoveId] = useState<string | null>(null)
 
-  const members = users.filter((u) => u.role === "member")
+  const members = users
   const filtered = members.filter(
     (m) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||

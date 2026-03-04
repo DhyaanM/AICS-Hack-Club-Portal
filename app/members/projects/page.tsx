@@ -57,7 +57,7 @@ export default function MemberProjectsPage() {
   const [type, setType] = useState<"solo" | "group">("solo")
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
 
-  const otherMembers = users.filter(u => u.id !== user!.id && u.role === "member")
+  const otherMembers = users.filter(u => u.id !== user!.id)
 
   function getMemberName(id: string) {
     return users.find((u) => u.id === id)?.name ?? id
