@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import type { User } from "./types"
 import { createClient } from "./supabase/client"
 
-const LEADER_EMAILS = ["s936832@aics.espritscholen.nl", "s936404@aics.espritscholen.nl"]
+const LEADER_EMAILS = (process.env.NEXT_PUBLIC_LEADER_EMAILS || "").split(",").map(e => e.trim().toLowerCase())
 
 interface AuthContextValue {
   user: User | null

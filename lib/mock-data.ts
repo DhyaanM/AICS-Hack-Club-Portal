@@ -12,7 +12,7 @@ export const users: User[] = [
   {
     id: "u1",
     name: "Dhyaan Manganahalli",
-    email: "s936832@aics.espritscholen.nl",
+    email: "leader1@example.com",
     role: "leader",
     joinDate: "2025-01-15",
     tags: ["Founder", "Full-Stack"],
@@ -20,7 +20,7 @@ export const users: User[] = [
   {
     id: "u2",
     name: "Akshit Aggarwal",
-    email: "s936404@aics.espritscholen.nl",
+    email: "leader2@example.com",
     role: "leader",
     joinDate: "2025-01-15",
     tags: ["Co-Founder", "AI/ML"],

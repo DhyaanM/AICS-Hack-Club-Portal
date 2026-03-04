@@ -158,9 +158,7 @@ export function ApplySection() {
                           name="email"
                           type="email"
                           required
-                          pattern=".*@aics\.espritscholen\.nl$"
-                          title="Must be an @aics.espritscholen.nl email address"
-                          placeholder="j.doe@aics.espritscholen.nl"
+                          placeholder="j.doe@school.edu"
                           className={inputClasses}
                         />
                       </div>

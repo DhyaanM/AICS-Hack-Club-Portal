@@ -45,7 +45,7 @@ export default function LoginPage() {
     }
 
     // Determine role for routing
-    const leaderEmails = ["s936832@aics.espritscholen.nl", "s936404@aics.espritscholen.nl"]
+    const leaderEmails = (process.env.NEXT_PUBLIC_LEADER_EMAILS || "").split(",").map(e => e.trim().toLowerCase())
     if (email.includes("leader") || leaderEmails.includes(email.toLowerCase())) {
       router.push("/leaders")
     } else {
@@ -122,7 +122,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@aics.espritscholen.nl"
+                  placeholder="you@school.edu"
                   required
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 text-sm font-medium text-white placeholder:text-white/20 outline-none focus:border-[#ec3750]/50 focus:bg-black/40 focus:ring-4 focus:ring-[#ec3750]/10 transition-all"
                 />

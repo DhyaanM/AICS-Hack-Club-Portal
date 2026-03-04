@@ -172,13 +172,6 @@ export default function MembersPage() {
                         <p className="truncate text-[10px] font-medium text-[#ec3750]">
                           {member.title || (() => {
                             const email = member.email?.toLowerCase()
-                            if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
-                            if (email === "s936404@aics.espritscholen.nl") return "Co-Founder + Lead of Operations"
-                            if (email === "s932344@aics.espritscholen.nl") return "CEO | Yamada Industries"
-                            if (email === "s929175@aics.espritscholen.nl") return "CEO | Bank of Sudhakar"
-                            if (email === "s933681@aics.espritscholen.nl") return "Approved By The Singh Community"
-                            if (email === "daksh.prasad@aics.espritscholen.nl") return "Just A Regular Member"
-                            if (email === "s936724@aics.espritscholen.nl") return "Part of The Top 1%"
                             return null
                           })()}
                         </p>
