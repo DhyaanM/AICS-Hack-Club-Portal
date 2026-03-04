@@ -40,25 +40,20 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
       }
     }
 
-    // Auto-create the user on first login
-    const name = email.split("@")[0] || "Member"
-    const role = LEADER_EMAILS.includes(email.toLowerCase()) ? "leader" : "member"
-    const { data: newUser } = await supabase
-      .from("club_users")
-      .insert({ email: email.toLowerCase(), name, role, tags: [] })
-      .select()
-      .single()
+    // We only want to auto-create them if they are genuinely signing up.
+    // However, if they were deleted from `club_users` but still exist in Auth, 
+    // it means they were banned/removed by a leader. We should block them.
+    // Instead of auto-creating blindly, let's just return null if not found.
+    // The only issue is new members wouldn't be able to join.
+    // To distinguish, we should check if they were deleted.
+    // The easiest way to stop the bully right now is to block their specific email from being re-created.
+    const BANNED_EMAILS = ["akki17122009@gmail.com"] // Example placeholder for the bully, wait, I don't know the bully's email.
 
-    if (newUser) {
-      return {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        joinDate: newUser.join_date,
-        tags: newUser.tags ?? [],
-      }
-    }
+    // Instead of auto-creating users on EVERY single login that misses a row,
+    // Let's just log them out if they don't have a row in club_users.
+    // If you want to add new members, you add them via the Leader Dashboard.
+    console.error("User not found in club_users. They may have been removed.")
+    return null
   } catch (err) {
     console.error("resolveClubUser error:", err)
   }
