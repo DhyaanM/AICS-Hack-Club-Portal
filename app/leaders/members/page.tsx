@@ -173,18 +173,20 @@ export default function MembersPage() {
                         <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                         <p className="truncate text-[10px] font-medium text-[#ec3750]">
                           {(() => {
+                            const isSupervisorViewer = user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+
+                            // If the current viewer is the supervisor, hide custom titles for everyone except themselves (if they had one)
+                            // Actually, the requirements say she should see akshit as lead of operations and dhyaan as founder.
                             const email = member.email?.toLowerCase()
-                            const isSupervisor = user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+                            if (isSupervisorViewer) {
+                              if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
+                              if (email === "s936404@aics.espritscholen.nl") return "Lead of Operations"
+                              if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
+                              return "Member"
+                            }
 
-                            // Leaders always get their real title regardless of who is looking
-                            if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
-                            if (email === "s936404@aics.espritscholen.nl") return "Co-Founder + Lead of Operations"
-                            if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
-
-                            // If the current viewer is the supervisor, hide joke titles and show "Member"
-                            if (isSupervisor) return "Member"
-
-                            return member.title || null
+                            // For everyone else, show their custom title if they have one, otherwise fallback to role
+                            return member.title || member.role
                           })()}
                         </p>
                       </div>

@@ -141,14 +141,11 @@ export function DashboardShell({
               <p className="truncate text-xs text-muted-foreground">
                 {user.title || (() => {
                   const email = user.email?.toLowerCase()
-                  const isViewerSupervisor = user.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
 
-                  // Leaders and special titles always resolve correctly when checking their own profile
+                  // Specific hardcoded overrides if not set in DB
                   if (email === "s936832@aics.espritscholen.nl" || email === "dhyaanmanganahalli@gmail.com") return "Founder + President"
-                  if (email === "s936404@aics.espritscholen.nl") return "Co-Founder + Lead of Operations"
+                  if (email === "s936404@aics.espritscholen.nl") return "Lead of Operations"
                   if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
-
-                  if (isViewerSupervisor) return "Member"
 
                   return user.role
                 })()}
