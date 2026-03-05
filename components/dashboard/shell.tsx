@@ -140,17 +140,24 @@ export function DashboardShell({
                 {user.name || user.email.split("@")[0]}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {user.title || (() => {
+                {(() => {
                   const email = user.email?.toLowerCase()
+                  const isSupervisor = email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
 
+                  // If Supervisor, always show standard title
+                  if (isSupervisor) return "Teacher Supervisor"
+
+                  // If has custom title, show it
+                  if (user.title) return user.title
+
+                  // Role-based fallbacks
                   const founderEmails = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",")
                   const cofounderEmails = (process.env.NEXT_PUBLIC_COFOUNDER_EMAILS || "").toLowerCase().split(",")
 
                   if (founderEmails.includes(email)) return "Founder + President"
                   if (cofounderEmails.includes(email)) return "Lead of Operations"
-                  if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
 
-                  return user.role
+                  return user.role === "leader" ? "Club Leader" : "Club Member"
                 })()}
               </p>
             </div>

@@ -171,25 +171,25 @@ export default function MembersPage() {
                       <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
                       <div className="flex flex-col">
                         <p className="truncate text-xs text-muted-foreground">{member.email}</p>
-                        <p className="truncate text-[10px] font-medium text-[#ec3750]">
+                        <p className="truncate text-[11px] text-muted-foreground/80">
                           {(() => {
-                            const isSupervisorViewer = user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+                            const viewerEmail = user?.email?.toLowerCase()
+                            const isSupervisorViewer = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+                            const memberEmail = member.email?.toLowerCase()
 
-                            // If the current viewer is the supervisor, hide custom titles for everyone except themselves (if they had one)
-                            // Actually, the requirements say she should see akshit as lead of operations and dhyaan as founder.
-                            const email = member.email?.toLowerCase()
+                            // If Supervisor is viewing, show role-based titles
                             if (isSupervisorViewer) {
                               const founderEmails = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",")
                               const cofounderEmails = (process.env.NEXT_PUBLIC_COFOUNDER_EMAILS || "").toLowerCase().split(",")
 
-                              if (founderEmails.includes(email || "")) return "Founder + President"
-                              if (cofounderEmails.includes(email || "")) return "Lead of Operations"
-                              if (email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Teacher Supervisor"
+                              if (founderEmails.includes(memberEmail || "")) return "Founder"
+                              if (cofounderEmails.includes(memberEmail || "")) return "Leader"
+                              if (memberEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()) return "Supervisor"
                               return "Member"
                             }
 
-                            // For everyone else, show their custom title if they have one, otherwise fallback to role
-                            return member.title || member.role
+                            // Normal view: show custom title or role fallback
+                            return member.title || (member.role === "leader" ? "Leader" : "Member")
                           })()}
                         </p>
                       </div>
