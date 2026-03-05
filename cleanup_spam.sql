@@ -1,26 +1,32 @@
--- AICS Hack Club Portal – Spam Cleanup Script
--- Run this in the Supabase SQL Editor
+-- AICS Hack Club Portal – Full Spam Content Cleanup
+-- Deletes all orphaned/spam content left behind by the banned user
+-- RUN IN SUPABASE SQL EDITOR
 
--- ─── Step 1: Nuke ALL attendance records ─────────────────────────────────────
--- This resets every member's attendance to N/A across all meetings.
-DELETE FROM attendance;
+-- ─── 1. Orphaned leave requests ───────────────────────────────────────────────
+DELETE FROM leave_requests
+WHERE meeting_id NOT IN (SELECT id FROM meetings);
 
--- ─── Step 2: Delete all meetings that are NOT in the official schedule ────────
--- Keeps only the 16 real weekly meetings; removes every spam meeting.
-DELETE FROM meetings
-WHERE id NOT IN (
-  'm9', 'm16', 'm23', 'm30',
-  'm406', 'm413', 'm420', 'm427',
-  'm504', 'm511', 'm518', 'm525',
-  'm601', 'm608', 'm615', 'm622'
-);
+DELETE FROM leave_requests
+WHERE user_id::text NOT IN (SELECT id::text FROM club_users);
 
--- ─── Step 3: Remove the banned user from club_users (if still present) ────────
-DELETE FROM club_users WHERE email ILIKE 'akki17122009@gmail.com';
+-- ─── 2. Spam projects ─────────────────────────────────────────────────────────
+DELETE FROM projects
+WHERE created_by NOT IN (SELECT id::text FROM club_users);
 
--- ─── Step 4: Verify ──────────────────────────────────────────────────────────
-SELECT 'Meetings remaining:' AS info, COUNT(*) AS count FROM meetings
+-- ─── 3. Spam problem reports ──────────────────────────────────────────────────
+DELETE FROM problem_reports
+WHERE user_id::text NOT IN (SELECT id::text FROM club_users);
+
+-- ─── 4. Orphaned attendance ───────────────────────────────────────────────────
+DELETE FROM attendance
+WHERE meeting_id NOT IN (SELECT id FROM meetings)
+   OR user_id::text NOT IN (SELECT id::text FROM club_users);
+
+-- ─── 5. Verify ────────────────────────────────────────────────────────────────
+SELECT 'leave_requests' AS table_name, COUNT(*) FROM leave_requests
 UNION ALL
-SELECT 'Attendance records:' AS info, COUNT(*) AS count FROM attendance
+SELECT 'projects', COUNT(*) FROM projects
 UNION ALL
-SELECT 'Banned users removed:' AS info, COUNT(*) AS count FROM club_users WHERE email ILIKE 'akki17122009@gmail.com';
+SELECT 'problem_reports', COUNT(*) FROM problem_reports
+UNION ALL
+SELECT 'attendance', COUNT(*) FROM attendance;
