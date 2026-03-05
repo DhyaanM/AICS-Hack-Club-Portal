@@ -166,7 +166,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ] = await Promise.all([
       supabase.from("club_users").select("*"),
       supabase.from("meetings").select("*").order("date"),
-      supabase.from("attendance").select("*"),
+      supabase.from("attendance_records").select("*"),
       supabase.from("projects").select("*").order("updated_at", { ascending: false }),
       supabase.from("leave_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("problem_reports").select("*").order("created_at", { ascending: false }),
@@ -188,7 +188,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const channels = [
       supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, loadAll),
       supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, loadAll),
-      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, loadAll),
+      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, loadAll),
       supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, loadAll),
       supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, loadAll),
       supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, loadAll),
@@ -264,7 +264,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error("Unauthorized: only leaders can mark attendance")
       return
     }
-    await supabase.from("attendance").upsert({
+    await supabase.from("attendance_records").upsert({
       id: `att-${meetingId}-${userId}`,
       meeting_id: meetingId,
       user_id: userId,
@@ -278,9 +278,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return
     }
     // Delete existing attendance for this meeting, then insert fresh
-    await supabase.from("attendance").delete().eq("meeting_id", meetingId)
+    await supabase.from("attendance_records").delete().eq("meeting_id", meetingId)
     if (records.length > 0) {
-      await supabase.from("attendance").insert(
+      await supabase.from("attendance_records").insert(
         records.map((r) => ({
           id: `att-${meetingId}-${r.userId}`,
           meeting_id: meetingId,
