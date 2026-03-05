@@ -182,6 +182,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    // Only load and subscribe if we actually have a user
+    if (!user) {
+      setUsers([])
+      setMeetings([])
+      setProjects([])
+      setLeaveRequests([])
+      setReports([])
+      setIsLoading(false)
+      return
+    }
+
     loadAll()
 
     // Real-time subscriptions — reload affected slice on any change
@@ -196,7 +207,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     channels.forEach((c) => c.subscribe())
     return () => { channels.forEach((c) => supabase.removeChannel(c)) }
-  }, [])
+  }, [user])
 
   // ─── Members ──────────────────────────────────────────────────────────────
   const addMember = useCallback(async (member: Omit<User, "id" | "role" | "joinDate">) => {
