@@ -128,15 +128,16 @@ export function DashboardShell({
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
               style={{ background: roleGradient[role] }}
             >
-              {user.name
+              {(user.name || "User")
                 .split(" ")
+                .filter(Boolean)
                 .map((n) => n[0])
                 .join("")
-                .slice(0, 2)}
+                .slice(0, 2) || "U"}
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-semibold text-sidebar-foreground">
-                {user.name}
+                {user.name || user.email.split("@")[0]}
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {user.title || (() => {

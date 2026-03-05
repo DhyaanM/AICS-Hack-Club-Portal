@@ -67,7 +67,7 @@ export default function MemberDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">
-          Welcome back, {user.name.split(" ")[0]}
+          Welcome back, {(user.name || "Member").split(" ")[0]}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Here is your club activity at a glance.
