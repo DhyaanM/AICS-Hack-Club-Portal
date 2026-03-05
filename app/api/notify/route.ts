@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { createClient } from '@/lib/supabase/server'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -106,6 +107,13 @@ function getEmailTemplate(title: string, memberName: string, contentHtml: string
 
 export async function POST(request: Request) {
   try {
+    // Auth gate: require a valid session
+    const supabase = await createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { type, memberName, details } = await request.json()
 
     let subject = ''

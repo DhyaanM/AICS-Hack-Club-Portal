@@ -20,6 +20,7 @@ import type {
   ReportStatus,
 } from "./types"
 import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "./auth-context"
 
 const supabase = createClient()
 
@@ -150,6 +151,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
   const [reports, setReports] = useState<ProblemReport[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
 
   // ── Initial Load ──────────────────────────────────────────────────────────
   async function loadAll() {
@@ -198,6 +200,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // ─── Members ──────────────────────────────────────────────────────────────
   const addMember = useCallback(async (member: Omit<User, "id" | "role" | "joinDate">) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can add members")
+      return
+    }
     await supabase.from("club_users").insert({
       name: member.name,
       email: member.email,
@@ -205,44 +211,72 @@ export function DataProvider({ children }: { children: ReactNode }) {
       join_date: today(),
       tags: member.tags ?? [],
     })
-  }, [])
+  }, [user])
 
   const removeMember = useCallback(async (id: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can remove members")
+      return
+    }
     await supabase.from("club_users").delete().eq("id", id)
-  }, [])
+  }, [user])
 
   const updateMemberName = useCallback(async (id: string, name: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update member names")
+      return
+    }
     await supabase.from("club_users").update({ name }).eq("id", id)
-  }, [])
+  }, [user])
 
   const updateMemberTags = useCallback(async (id: string, tags: string[]) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update member tags")
+      return
+    }
     await supabase.from("club_users").update({ tags }).eq("id", id)
-  }, [])
+  }, [user])
 
   const updateMemberTitle = useCallback(async (id: string, title: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update member titles")
+      return
+    }
     await supabase.from("club_users").update({ title }).eq("id", id)
-  }, [])
+  }, [user])
 
   // ─── Meetings ─────────────────────────────────────────────────────────────
   const addMeeting = useCallback(async (meeting: Omit<Meeting, "id" | "attendance">) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can add meetings")
+      return
+    }
     await supabase.from("meetings").insert({
       id: `meet-${generateId()}`,
       title: meeting.title,
       date: meeting.date,
       description: meeting.description,
     })
-  }, [])
+  }, [user])
 
   const markAttendance = useCallback(async (meetingId: string, userId: string, status: AttendanceStatus) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can mark attendance")
+      return
+    }
     await supabase.from("attendance").upsert({
       id: `att-${meetingId}-${userId}`,
       meeting_id: meetingId,
       user_id: userId,
       status,
     }, { onConflict: "id" })
-  }, [])
+  }, [user])
 
   const saveMeetingAttendance = useCallback(async (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can save attendance")
+      return
+    }
     // Delete existing attendance for this meeting, then insert fresh
     await supabase.from("attendance").delete().eq("meeting_id", meetingId)
     if (records.length > 0) {
@@ -255,7 +289,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }))
       )
     }
-  }, [])
+  }, [user])
 
   // ─── Projects ─────────────────────────────────────────────────────────────
   const addProject = useCallback(async (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => {
@@ -286,10 +320,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [users])
 
   const updateProjectStatus = useCallback(async (id: string, status: ProjectStatus, leaderComment?: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update project status")
+      return
+    }
     const update: Record<string, unknown> = { status, updated_at: today() }
     if (leaderComment !== undefined) update.leader_comment = leaderComment
     await supabase.from("projects").update(update).eq("id", id)
-  }, [])
+  }, [user])
 
   const addProjectNote = useCallback(async (id: string, note: string) => {
     const existing = projects.find((p) => p.id === id)
@@ -326,8 +364,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [users, meetings])
 
   const updateLeaveStatus = useCallback(async (id: string, status: LeaveStatus) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update leave status")
+      return
+    }
     await supabase.from("leave_requests").update({ status }).eq("id", id)
-  }, [])
+  }, [user])
 
   // ─── Reports ──────────────────────────────────────────────────────────────
   const addReport = useCallback(async (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => {
@@ -352,14 +394,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [users])
 
   const updateReportStatus = useCallback(async (id: string, status: ReportStatus, response?: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update report status")
+      return
+    }
     const update: Record<string, unknown> = { status, updated_at: today() }
     if (response !== undefined) update.leader_response = response
     await supabase.from("problem_reports").update(update).eq("id", id)
-  }, [])
+  }, [user])
 
   const deleteReport = useCallback(async (id: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can delete reports")
+      return
+    }
     await supabase.from("problem_reports").delete().eq("id", id)
-  }, [])
+  }, [user])
 
   return (
     <DataContext.Provider

@@ -5,6 +5,7 @@ import type { User } from "./types"
 import { createClient } from "./supabase/client"
 
 const LEADER_EMAILS = (process.env.NEXT_PUBLIC_LEADER_EMAILS || "").split(",").map(e => e.trim().toLowerCase())
+const BANNED_EMAILS = (process.env.NEXT_PUBLIC_BANNED_EMAILS || "").toLowerCase().split(",").filter(Boolean)
 
 interface AuthContextValue {
   user: User | null
@@ -22,19 +23,18 @@ const AuthContext = createContext<AuthContextValue>({
 
 async function resolveClubUser(email: string, authId: string, supabase: ReturnType<typeof createClient>): Promise<User | null> {
   try {
+    // Hard Ban Check first
+    if (BANNED_EMAILS.includes(email.toLowerCase())) {
+      console.warn("Banned user attempted to access the platform:", email)
+      return null
+    }
+
     // Try to find existing club_users record by email
     const { data: clubUser, error } = await supabase
       .from("club_users")
       .select("*")
       .ilike("email", email)
       .maybeSingle()
-
-    // Hard Ban Check
-    const bannedEmails = (process.env.NEXT_PUBLIC_BANNED_EMAILS || "").toLowerCase().split(",")
-    if (bannedEmails.includes(email.toLowerCase())) {
-      console.warn("Banned user attempted to access the platform:", email)
-      return null
-    }
 
     if (clubUser && !error) {
       return {
@@ -48,8 +48,6 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
       }
     }
 
-    // We only want to auto-create them if they are genuinely signing up.
-
     // Instead of auto-creating users on EVERY single login that misses a row,
     // Let's just log them out if they don't have a row in club_users.
     // If you want to add new members, you add them via the Leader Dashboard.
@@ -57,8 +55,8 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
     return null
   } catch (err) {
     console.error("resolveClubUser error:", err)
+    return null
   }
-  return null
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -70,8 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user?.email) {
-        const resolved = await resolveClubUser(session.user.email, session.user.id, supabase)
-        setUser(resolved)
+        if (BANNED_EMAILS.includes(session.user.email.toLowerCase())) {
+          await supabase.auth.signOut()
+          setUser(null)
+        } else {
+          const resolved = await resolveClubUser(session.user.email, session.user.id, supabase)
+          setUser(resolved)
+        }
       }
       setLoading(false)
     })
@@ -84,6 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       if (session?.user?.email) {
+        if (BANNED_EMAILS.includes(session.user.email.toLowerCase())) {
+          supabase.auth.signOut().then(() => {
+            setUser(null)
+            setLoading(false)
+          })
+          return
+        }
         resolveClubUser(session.user.email, session.user.id, supabase).then((resolved) => {
           setUser(resolved)
           setLoading(false)

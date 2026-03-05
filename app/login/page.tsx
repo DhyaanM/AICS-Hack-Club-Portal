@@ -44,15 +44,10 @@ export default function LoginPage() {
       return
     }
 
-    // Determine role for routing
-    const leaderEmails = (process.env.NEXT_PUBLIC_LEADER_EMAILS || "").split(",").map(e => e.trim().toLowerCase())
-    if (email.includes("leader") || leaderEmails.includes(email.toLowerCase())) {
-      router.push("/leaders")
-    } else {
-      router.push("/members")
-    }
-
     toast.success("Signed in successfully!")
+    // Routing is handled by the layout guards (members/leaders layout)
+    // so we just push to /members and the layout will redirect leaders to /leaders
+    router.push("/members")
     router.refresh()
   }
 

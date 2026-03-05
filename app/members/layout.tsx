@@ -14,7 +14,7 @@ export default function MembersLayout({ children }: { children: ReactNode }) {
     if (!loading && user && user.role === "leader") router.push("/leaders")
   }, [user, loading, router])
 
-  if (loading || !user) return null
+  if (loading || !user || user.role === "leader") return null
 
   return <DashboardShell role="member">{children}</DashboardShell>
 }
