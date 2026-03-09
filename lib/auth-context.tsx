@@ -37,7 +37,7 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
       .maybeSingle()
 
     if (clubUser && !error) {
-      return {
+      const u: User = {
         id: clubUser.id,
         name: clubUser.name,
         email: clubUser.email,
@@ -47,6 +47,15 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
         title: clubUser.title,
         avatar: clubUser.avatar,
       }
+
+      if (u.avatar && !u.avatar.startsWith("http")) {
+        const { data } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(u.avatar, 3600)
+        if (data) u.avatar = data.signedUrl
+      }
+
+      return u
     }
 
     // Instead of auto-creating users on EVERY single login that misses a row,

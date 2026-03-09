@@ -175,7 +175,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.from("problem_reports").select("*").order("created_at", { ascending: false }),
     ])
 
-    setUsers((usersData ?? []).map(mapUser))
+    // Fetch signed URLs for avatars if any
+    const rawUsers = usersData ?? []
+    const avatarPaths = rawUsers
+      .map((u) => u.avatar)
+      .filter((a): a is string => !!a && !a.startsWith("http"))
+
+    let signedUrls: any[] = []
+    if (avatarPaths.length > 0) {
+      const { data } = await supabase.storage
+        .from("avatars")
+        .createSignedUrls(avatarPaths, 3600)
+      signedUrls = data ?? []
+    }
+
+    const mappedUsers = rawUsers.map((row) => {
+      const u = mapUser(row)
+      const signed = signedUrls.find((s) => s.path === u.avatar)
+      if (signed) u.avatar = signed.signedUrl
+      return u
+    })
+
+    setUsers(mappedUsers)
     const att = attendanceData ?? []
     setMeetings((meetingsData ?? []).map((r) => mapMeeting(r, att)))
     setProjects((projectsData ?? []).map(mapProject))
@@ -280,11 +301,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       throw uploadError
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath)
-
-    return publicUrl
+    return filePath
   }, [])
 
   // ─── Meetings ─────────────────────────────────────────────────────────────

@@ -1,10 +1,41 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Code2, Zap } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+
+const supabase = createClient()
 
 export function Hero() {
+  const [stats, setStats] = useState({
+    member_count: 0,
+    project_count: 0,
+    meeting_count: 0,
+  })
+
+  async function fetchStats() {
+    const { data } = await supabase.rpc("get_landing_stats", {
+      excluded_email: process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL || "",
+    })
+    if (data && data.length > 0) {
+      setStats(data[0])
+    }
+  }
+
+  useEffect(() => {
+    fetchStats()
+
+    const channels = [
+      supabase.channel("public:club_users").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, fetchStats),
+      supabase.channel("public:projects").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, fetchStats),
+      supabase.channel("public:meetings").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, fetchStats),
+    ]
+
+    channels.forEach((c) => c.subscribe())
+    return () => { channels.forEach((c) => supabase.removeChannel(c)) }
+  }, [])
 
 
   return (
@@ -122,14 +153,13 @@ export function Hero() {
               </Link>
             </div>
 
-            {/* Stats row */}
             <div className="mt-12 flex flex-wrap justify-center gap-8 lg:justify-start">
               {[
-                { label: "Active Members", value: "0" },
-                { label: "Projects Built", value: "0" },
-                { label: "Meetings Held", value: "0" },
+                { label: "Active Members", value: stats.member_count.toString() },
+                { label: "Projects Built", value: stats.project_count.toString() },
+                { label: "Meetings Held", value: stats.meeting_count.toString() },
               ].map((s) => (
-                <div key={s.label} className="text-center lg:text-left">
+                <div key={s.label} className="text-center lg:text-left min-w-[100px]">
                   <p className="text-3xl font-extrabold text-white">{s.value}</p>
                   <p className="mt-0.5 text-xs font-medium text-white/40 uppercase tracking-wider">
                     {s.label}

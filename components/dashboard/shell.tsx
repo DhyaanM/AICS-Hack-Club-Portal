@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
+import { useData } from "@/lib/data-context"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -58,8 +59,13 @@ export function DashboardShell({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, logout } = useAuth()
+  const { user: authUser, logout } = useAuth()
+  const { users } = useData()
   const [sheetOpen, setSheetOpen] = useState(false)
+
+  const user = users.find((u) => u.email === authUser?.email) || authUser
+
+  if (!user) return null
 
   const nav = role === "leader" ? leaderNav : memberNav
 
