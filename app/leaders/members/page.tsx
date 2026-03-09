@@ -43,7 +43,7 @@ function getAttendancePct(userId: string, meetings: { attendance: { userId: stri
 }
 
 export default function MembersPage() {
-  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle, updateMemberAvatar } = useData()
+  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle, updateMemberAvatar, uploadAvatar } = useData()
   const { user } = useAuth()
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
@@ -53,6 +53,7 @@ export default function MembersPage() {
   const [editName, setEditName] = useState("")
   const [editTitle, setEditTitle] = useState("")
   const [editAvatar, setEditAvatar] = useState("")
+  const [isUploading, setIsUploading] = useState(false)
   const [removeId, setRemoveId] = useState<string | null>(null)
 
   const members = users.filter((u) => u.email?.toLowerCase() !== process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase())
@@ -81,12 +82,29 @@ export default function MembersPage() {
   }
 
   async function handleEdit() {
-    if (!editId || !editName.trim()) return
+    if (!editId || !editName.trim() || isUploading) return
     await updateMemberName(editId, editName.trim())
     await updateMemberTitle(editId, editTitle.trim())
     await updateMemberAvatar(editId, editAvatar.trim())
     toast.success("Member updated!")
     setEditId(null)
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      const url = await uploadAvatar(file)
+      setEditAvatar(url)
+      toast.success("Image uploaded!")
+    } catch (err) {
+      console.error(err)
+      toast.error("Upload failed")
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
@@ -260,11 +278,35 @@ export default function MembersPage() {
                                 <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. CEO | Yamada Industries" />
                               </div>
                               <div className="space-y-1.5">
-                                <label className="text-sm font-medium">Avatar URL</label>
-                                <Input value={editAvatar} onChange={(e) => setEditAvatar(e.target.value)} placeholder="https://example.com/photo.jpg" />
+                                <label className="text-sm font-medium">Profile Photo</label>
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className="h-12 w-12 shrink-0 rounded-full border-2 border-border/40 bg-muted/20 overflow-hidden flex items-center justify-center"
+                                  >
+                                    {editAvatar ? (
+                                      <img src={editAvatar} alt="" className="h-full w-full object-cover" />
+                                    ) : (
+                                      <span className="text-[10px] font-bold text-muted-foreground">None</span>
+                                    )}
+                                  </div>
+                                  <div className="relative flex-1">
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      className="cursor-pointer text-xs pr-4 h-9"
+                                      onChange={handleFileChange}
+                                      disabled={isUploading}
+                                    />
+                                    {isUploading && (
+                                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-md">
+                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit}>
-                                Save Changes
+                              <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit} disabled={isUploading}>
+                                {isUploading ? "Uploading..." : "Save Changes"}
                               </Button>
                             </div>
                           </DialogContent>

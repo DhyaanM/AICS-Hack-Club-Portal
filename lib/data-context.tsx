@@ -128,6 +128,7 @@ interface DataContextValue {
   markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
   saveMeetingAttendance: (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => Promise<void>
   updateMemberAvatar: (id: string, avatar: string) => Promise<void>
+  uploadAvatar: (file: File) => Promise<string>
 
   addProject: (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => Promise<void>
   updateProjectStatus: (id: string, status: ProjectStatus, leaderComment?: string) => Promise<void>
@@ -264,6 +265,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
     await supabase.from("club_users").update({ avatar }).eq("id", id)
   }, [user])
+
+  const uploadAvatar = useCallback(async (file: File) => {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).slice(2)}.${fileExt}`
+    const filePath = `${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file)
+
+    if (uploadError) {
+      throw uploadError
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath)
+
+    return publicUrl
+  }, [])
 
   // ─── Meetings ─────────────────────────────────────────────────────────────
   const addMeeting = useCallback(async (meeting: Omit<Meeting, "id" | "attendance">) => {
@@ -446,6 +467,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         markAttendance,
         saveMeetingAttendance,
         updateMemberAvatar,
+        uploadAvatar,
         addProject,
         updateProjectStatus,
         addProjectNote,
