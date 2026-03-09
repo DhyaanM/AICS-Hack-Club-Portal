@@ -46,7 +46,14 @@ export default function AttendancePage() {
 
   // Create meeting state
   const [isCreating, setIsCreating] = useState(false)
-  const [newTitle, setNewTitle] = useState("Weekly Meeting")
+  const [newTitle, setNewTitle] = useState(() => {
+    const lastMeeting = meetings[meetings.length - 1]
+    if (lastMeeting?.title.includes("#")) {
+      const lastNum = parseInt(lastMeeting.title.split("#")[1])
+      if (!isNaN(lastNum)) return `Weekly Meeting #${lastNum + 1}`
+    }
+    return `Weekly Meeting #${meetings.length + 1}`
+  })
   const [newDate, setNewDate] = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7)) // Next Monday

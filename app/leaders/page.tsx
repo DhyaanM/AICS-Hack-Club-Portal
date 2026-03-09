@@ -48,8 +48,14 @@ export default function LeadersDashboard() {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   )
 
-  // Only count meetings that have actually occurred
-  const heldMeetings = sortedMeetings.filter(m => new Date(m.date) < new Date())
+  // Only count meetings that have actually occurred (today or earlier)
+  const heldMeetings = sortedMeetings.filter(m => {
+    const meetingDate = new Date(m.date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    meetingDate.setHours(0, 0, 0, 0)
+    return meetingDate <= today
+  })
 
   // Only chart meetings that have at least one valid attendance mark
   const meetingsWithAttendance = sortedMeetings.filter((m) =>
