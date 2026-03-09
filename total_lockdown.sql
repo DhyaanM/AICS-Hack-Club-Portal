@@ -105,6 +105,7 @@ DROP POLICY IF EXISTS "Member Read Avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Leader Upload Avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Leader Update Avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Leader Delete Avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Leader Manage Avatars" ON storage.objects;
 
 -- Member-only read access to avatars
 CREATE POLICY "Member Read Avatars"
