@@ -215,7 +215,7 @@ export default function MembersPage() {
                         })()}
                       </div>
                       {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(member.email?.toLowerCase() || "") && (
-                        <div className="absolute -right-1 -top-1.5 rotate-[15deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                        <div className="absolute -right-1 -top-1.5 rotate-[25deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
                           <Crown className="h-4 w-4 fill-yellow-400 text-yellow-600" />
                         </div>
                       )}
