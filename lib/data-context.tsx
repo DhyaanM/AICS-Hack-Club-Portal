@@ -127,6 +127,7 @@ interface DataContextValue {
   addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
   markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
   saveMeetingAttendance: (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => Promise<void>
+  updateMemberAvatar: (id: string, avatar: string) => Promise<void>
 
   addProject: (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => Promise<void>
   updateProjectStatus: (id: string, status: ProjectStatus, leaderComment?: string) => Promise<void>
@@ -256,6 +257,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await supabase.from("club_users").update({ title }).eq("id", id)
   }, [user])
 
+  const updateMemberAvatar = useCallback(async (id: string, avatar: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can update member avatars")
+      return
+    }
+    await supabase.from("club_users").update({ avatar }).eq("id", id)
+  }, [user])
+
   // ─── Meetings ─────────────────────────────────────────────────────────────
   const addMeeting = useCallback(async (meeting: Omit<Meeting, "id" | "attendance">) => {
     if (user?.role !== "leader") {
@@ -263,7 +272,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return
     }
     await supabase.from("meetings").insert({
-      id: `meet-${generateId()}`,
       title: meeting.title,
       date: meeting.date,
       description: meeting.description,
@@ -276,11 +284,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return
     }
     await supabase.from("attendance_records").upsert({
-      id: `att-${meetingId}-${userId}`,
       meeting_id: meetingId,
       user_id: userId,
       status,
-    }, { onConflict: "id" })
+    }, { onConflict: "meeting_id, user_id" })
   }, [user])
 
   const saveMeetingAttendance = useCallback(async (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => {
@@ -293,7 +300,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (records.length > 0) {
       await supabase.from("attendance_records").insert(
         records.map((r) => ({
-          id: `att-${meetingId}-${r.userId}`,
           meeting_id: meetingId,
           user_id: r.userId,
           status: r.status,
@@ -439,6 +445,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         addMeeting,
         markAttendance,
         saveMeetingAttendance,
+        updateMemberAvatar,
         addProject,
         updateProjectStatus,
         addProjectNote,

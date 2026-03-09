@@ -125,15 +125,24 @@ export function DashboardShell({
         {user && (
           <div className="mb-3 flex items-center gap-3">
             <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm overflow-hidden"
               style={{ background: roleGradient[role] }}
             >
-              {(user.name || "User")
-                .split(" ")
-                .filter(Boolean)
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2) || "U"}
+              {(() => {
+                const viewerEmail = user.email?.toLowerCase()
+                const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+
+                if (!isSupervisor && user.avatar) {
+                  return <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+                }
+
+                return (user.name || "User")
+                  .split(" ")
+                  .filter(Boolean)
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2) || "U"
+              })()}
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-semibold text-sidebar-foreground">

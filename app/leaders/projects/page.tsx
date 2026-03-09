@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useData } from "@/lib/data-context"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,6 +37,7 @@ function initials(name: string) {
 }
 
 export default function LeaderProjectsPage() {
+  const { user } = useAuth()
   const { projects, users, updateProjectStatus, deleteProject } = useData()
   const [tab, setTab] = useState<ProjectStatus | "all">("all")
   const [selected, setSelected] = useState<Project | null>(null)
@@ -132,10 +134,19 @@ export default function LeaderProjectsPage() {
                         <div
                           key={id}
                           title={getMemberName(id)}
-                          className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold text-white"
+                          className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold text-white overflow-hidden"
                           style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
                         >
-                          {initials(getMemberName(id))}
+                          {(() => {
+                            const member = users.find(u => u.id === id)
+                            const viewerEmail = user?.email?.toLowerCase()
+                            const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+
+                            if (!isSupervisor && member?.avatar) {
+                              return <img src={member.avatar} alt="" className="h-full w-full object-cover" />
+                            }
+                            return initials(getMemberName(id))
+                          })()}
                         </div>
                       ))}
                     </div>

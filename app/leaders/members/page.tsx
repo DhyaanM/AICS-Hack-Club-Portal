@@ -43,7 +43,7 @@ function getAttendancePct(userId: string, meetings: { attendance: { userId: stri
 }
 
 export default function MembersPage() {
-  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle } = useData()
+  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle, updateMemberAvatar } = useData()
   const { user } = useAuth()
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
@@ -52,6 +52,7 @@ export default function MembersPage() {
   const [editId, setEditId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [editTitle, setEditTitle] = useState("")
+  const [editAvatar, setEditAvatar] = useState("")
   const [removeId, setRemoveId] = useState<string | null>(null)
 
   const members = users.filter((u) => u.email?.toLowerCase() !== process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase())
@@ -83,6 +84,7 @@ export default function MembersPage() {
     if (!editId || !editName.trim()) return
     await updateMemberName(editId, editName.trim())
     await updateMemberTitle(editId, editTitle.trim())
+    await updateMemberAvatar(editId, editAvatar.trim())
     toast.success("Member updated!")
     setEditId(null)
   }
@@ -160,10 +162,17 @@ export default function MembersPage() {
                   >
                     {/* Avatar */}
                     <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
                       style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
                     >
-                      {initials(member.name)}
+                      {(() => {
+                        const viewerEmail = user?.email?.toLowerCase()
+                        const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+
+                        if (isSupervisor) return initials(member.name)
+                        if (member.avatar) return <img src={member.avatar} alt="" className="h-full w-full object-cover" />
+                        return initials(member.name)
+                      })()}
                     </div>
 
                     {/* Info */}
@@ -228,6 +237,7 @@ export default function MembersPage() {
                           if (o) {
                             setEditName(member.name)
                             setEditTitle(member.title || "")
+                            setEditAvatar(member.avatar || "")
                           }
                           setEditId(o ? member.id : null)
                         }}>
@@ -238,7 +248,7 @@ export default function MembersPage() {
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-sm">
                             <DialogHeader>
-                              <DialogTitle>Edit Member Name</DialogTitle>
+                              <DialogTitle>Edit Member Profile</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4 pt-2">
                               <div className="space-y-1.5">
@@ -248,6 +258,10 @@ export default function MembersPage() {
                               <div className="space-y-1.5">
                                 <label className="text-sm font-medium">Title</label>
                                 <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. CEO | Yamada Industries" />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-sm font-medium">Avatar URL</label>
+                                <Input value={editAvatar} onChange={(e) => setEditAvatar(e.target.value)} placeholder="https://example.com/photo.jpg" />
                               </div>
                               <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit}>
                                 Save Changes
