@@ -15,7 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import type { User } from "@/lib/types"
 
 const ROLE_COLOR = { leader: "#ec3750", member: "#338eda" }
@@ -105,6 +106,11 @@ export default function MembersPage() {
     } finally {
       setIsUploading(false)
     }
+  }
+
+  const removeAvatar = () => {
+    setEditAvatar("")
+    toast.success("Avatar removed")
   }
 
   return (
@@ -277,35 +283,74 @@ export default function MembersPage() {
                                 <label className="text-sm font-medium">Title</label>
                                 <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. CEO | Yamada Industries" />
                               </div>
-                              <div className="space-y-1.5">
-                                <label className="text-sm font-medium">Profile Photo</label>
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className="h-12 w-12 shrink-0 rounded-full border-2 border-border/40 bg-muted/20 overflow-hidden flex items-center justify-center"
-                                  >
-                                    {editAvatar ? (
-                                      <img src={editAvatar} alt="" className="h-full w-full object-cover" />
-                                    ) : (
-                                      <span className="text-[10px] font-bold text-muted-foreground">None</span>
-                                    )}
-                                  </div>
-                                  <div className="relative flex-1">
-                                    <Input
+                              <div className="space-y-4">
+                                <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                                  Profile Appearance
+                                </label>
+
+                                <div
+                                  className={cn(
+                                    "group relative flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-border/60 bg-muted/5 p-8 transition-all hover:border-[#338eda]/50 hover:bg-[#338eda]/5",
+                                    isUploading && "opacity-60 cursor-not-allowed"
+                                  )}
+                                >
+                                  {editAvatar ? (
+                                    <div className="relative h-28 w-28 group/avatar">
+                                      <div className="h-full w-full rounded-full border-4 border-background shadow-xl overflow-hidden ring-4 ring-[#338eda]/10 transition-all group-hover/avatar:ring-[#338eda]/20">
+                                        <img src={editAvatar} alt="Avatar Preview" className="h-full w-full object-cover" />
+                                      </div>
+                                      <button
+                                        onClick={removeAvatar}
+                                        className="absolute -right-1 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-white text-destructive shadow-lg border border-border transition-all hover:scale-110 active:scale-95 z-20"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center text-center">
+                                      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-background border-2 border-border shadow-sm text-muted-foreground transition-all group-hover:border-[#338eda]/30 group-hover:text-[#338eda]/60 group-hover:scale-105">
+                                        <ImageIcon className="h-7 w-7" />
+                                      </div>
+                                      <p className="text-sm font-semibold text-foreground">Upload a photo</p>
+                                      <p className="mt-1 text-xs text-muted-foreground max-w-[150px]">
+                                        Click or drag an image here.
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  <div className="relative">
+                                    <input
                                       type="file"
                                       accept="image/*"
-                                      className="cursor-pointer text-xs pr-4 h-9"
+                                      className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                                       onChange={handleFileChange}
                                       disabled={isUploading}
                                     />
-                                    {isUploading && (
-                                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-md">
-                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                      </div>
-                                    )}
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className={cn(
+                                        "relative z-0 h-9 rounded-xl border-border/60 bg-background px-4 font-semibold transition-all",
+                                        isUploading && "text-transparent"
+                                      )}
+                                      disabled={isUploading}
+                                    >
+                                      {editAvatar ? "Change Photo" : "Choose File"}
+                                      {isUploading && (
+                                        <div className="absolute inset-0 flex items-center justify-center text-[#338eda]">
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        </div>
+                                      )}
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
-                              <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleEdit} disabled={isUploading}>
+
+                              <Button
+                                className="w-full h-11 rounded-xl bg-[#338eda] text-white font-bold shadow-lg shadow-[#338eda]/20 hover:bg-[#2b78be] hover:shadow-[#338eda]/30 transition-all spring-press"
+                                onClick={handleEdit}
+                                disabled={isUploading}
+                              >
                                 {isUploading ? "Uploading..." : "Save Changes"}
                               </Button>
                             </div>
