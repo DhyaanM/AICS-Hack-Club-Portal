@@ -43,6 +43,7 @@ function mapUser(row: Record<string, unknown>): User {
     joinDate: row.join_date as string,
     tags: (row.tags as string[]) ?? [],
     title: row.title as string | undefined,
+    avatar: row.avatar as string | undefined,
   }
 }
 

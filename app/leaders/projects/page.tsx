@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink, Trash2 } from "lucide-react"
+import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink, Trash2, Crown } from "lucide-react"
 import type { Project, ProjectStatus } from "@/lib/types"
 
 const TABS: { key: ProjectStatus | "all"; label: string; color: string }[] = [
@@ -131,21 +131,34 @@ export default function LeaderProjectsPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex -space-x-2">
                       {project.memberIds.slice(0, 3).map((id) => (
-                        <div
-                          key={id}
-                          title={getMemberName(id)}
-                          className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold text-white overflow-hidden"
-                          style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
-                        >
+                        <div key={id} className="relative">
+                          <div
+                            title={getMemberName(id)}
+                            className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold text-white overflow-hidden"
+                            style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                          >
+                            {(() => {
+                              const member = users.find(u => u.id === id)
+                              const viewerEmail = user?.email?.toLowerCase()
+                              const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+
+                              if (!isSupervisor && member?.avatar) {
+                                return <img src={member.avatar} alt="" className="h-full w-full object-cover" />
+                              }
+                              return initials(getMemberName(id))
+                            })()}
+                          </div>
                           {(() => {
                             const member = users.find(u => u.id === id)
-                            const viewerEmail = user?.email?.toLowerCase()
-                            const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
-
-                            if (!isSupervisor && member?.avatar) {
-                              return <img src={member.avatar} alt="" className="h-full w-full object-cover" />
+                            const isFounder = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(member?.email?.toLowerCase() || "")
+                            if (isFounder) {
+                              return (
+                                <div className="absolute -right-0.5 -top-1 rotate-[15deg] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                                  <Crown className="h-2.5 w-2.5 fill-yellow-400 text-yellow-600" />
+                                </div>
+                              )
                             }
-                            return initials(getMemberName(id))
+                            return null
                           })()}
                         </div>
                       ))}

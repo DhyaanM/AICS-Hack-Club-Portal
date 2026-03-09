@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { User } from "@/lib/types"
 
@@ -63,6 +63,21 @@ export default function MembersPage() {
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.email.toLowerCase().includes(search.toLowerCase())
   )
+
+  // Custom Sorting: Founder > Co-founder > Others
+  const sorted = [...filtered].sort((a, b) => {
+    const founderEmails = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",")
+    const cofounderEmails = (process.env.NEXT_PUBLIC_COFOUNDER_EMAILS || "").toLowerCase().split(",")
+
+    const aEmail = a.email.toLowerCase()
+    const bEmail = b.email.toLowerCase()
+
+    const aOrder = founderEmails.includes(aEmail) ? 0 : cofounderEmails.includes(aEmail) ? 1 : 2
+    const bOrder = founderEmails.includes(bEmail) ? 0 : cofounderEmails.includes(bEmail) ? 1 : 2
+
+    if (aOrder !== bOrder) return aOrder - bOrder
+    return a.name.localeCompare(b.name)
+  })
 
   async function handleAdd() {
     if (!newName.trim() || !newEmail.trim()) {
@@ -165,17 +180,17 @@ export default function MembersPage() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="h-4 w-4" style={{ color: "#338eda" }} />
-            All Members ({filtered.length})
+            All Members ({sorted.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {filtered.length === 0 ? (
+          {sorted.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
               No members found.
             </p>
           ) : (
             <div className="divide-y divide-border/50">
-              {filtered.map((member) => {
+              {sorted.map((member) => {
                 const pct = getAttendancePct(member.id, meetings)
                 const pctColor =
                   pct === null ? "#8492a6" : pct >= 80 ? "#33d6a6" : pct >= 60 ? "#f1c40f" : "#ec3750"
@@ -185,18 +200,25 @@ export default function MembersPage() {
                     className="flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors"
                   >
                     {/* Avatar */}
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden"
-                      style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
-                    >
-                      {(() => {
-                        const viewerEmail = user?.email?.toLowerCase()
-                        const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+                    <div className="relative">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden ring-2 ring-border/20 transition-all hover:ring-[#338eda]/40"
+                        style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                      >
+                        {(() => {
+                          const viewerEmail = user?.email?.toLowerCase()
+                          const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
 
-                        if (isSupervisor) return initials(member.name)
-                        if (member.avatar) return <img src={member.avatar} alt="" className="h-full w-full object-cover" />
-                        return initials(member.name)
-                      })()}
+                          if (isSupervisor) return initials(member.name)
+                          if (member.avatar) return <img src={member.avatar} alt="" className="h-full w-full object-cover" />
+                          return initials(member.name)
+                        })()}
+                      </div>
+                      {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(member.email?.toLowerCase() || "") && (
+                        <div className="absolute -right-1 -top-1.5 rotate-[15deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                          <Crown className="h-4 w-4 fill-yellow-400 text-yellow-600" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Info */}

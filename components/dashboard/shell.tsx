@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   Clock,
+  Crown,
 } from "lucide-react"
 import { useState, type ReactNode } from "react"
 
@@ -124,25 +125,32 @@ export function DashboardShell({
       <div className="border-t border-sidebar-border p-4">
         {user && (
           <div className="mb-3 flex items-center gap-3">
-            <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm overflow-hidden"
-              style={{ background: roleGradient[role] }}
-            >
-              {(() => {
-                const viewerEmail = user.email?.toLowerCase()
-                const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+            <div className="relative group/user">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-xl overflow-hidden ring-2 ring-border/20 transition-all hover:ring-[#ec3750]/40"
+                style={{ background: roleGradient[role], width: '40px', height: '40px' }}
+              >
+                {(() => {
+                  const viewerEmail = user.email?.toLowerCase()
+                  const isSupervisor = viewerEmail === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
 
-                if (!isSupervisor && user.avatar) {
-                  return <img src={user.avatar} alt="" className="h-full w-full object-cover" />
-                }
+                  if (!isSupervisor && user.avatar) {
+                    return <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+                  }
 
-                return (user.name || "User")
-                  .split(" ")
-                  .filter(Boolean)
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2) || "U"
-              })()}
+                  return (user.name || "User")
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2) || "U"
+                })()}
+              </div>
+              {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(user.email?.toLowerCase() || "") && (
+                <div className="absolute -right-1 -top-1.5 rotate-[15deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-110">
+                  <Crown className="h-4 w-4 fill-yellow-400 text-yellow-600" />
+                </div>
+              )}
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-semibold text-sidebar-foreground">
