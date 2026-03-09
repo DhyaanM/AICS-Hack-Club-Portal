@@ -231,7 +231,7 @@ export function ApplySection() {
                     <div className="space-y-3 rounded-2xl border border-border/50 bg-muted/20 p-5">
                       <label className="flex items-start gap-2 text-sm font-bold text-foreground">
                         <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                        Are you willing to attend the sessions every Monday 3:00PM - 4:45PM? *
+                        Are you willing to attend the sessions every Monday 3:00PM - 4:30PM? *
                       </label>
                       <div className="ml-6 flex flex-wrap gap-6">
                         <label className="group flex cursor-pointer items-center gap-3">
