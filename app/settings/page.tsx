@@ -42,7 +42,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-4xl mx-auto">
             <div>
                 <h1 className="text-2xl font-bold text-foreground">Settings</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -98,8 +98,8 @@ export default function SettingsPage() {
                             <button
                                 onClick={() => setTheme("light")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "light"
-                                        ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
-                                        : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                    ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                                    : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                     }`}
                             >
                                 <Sun className="h-6 w-6" />
@@ -109,8 +109,8 @@ export default function SettingsPage() {
                             <button
                                 onClick={() => setTheme("dark")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "dark"
-                                        ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
-                                        : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                    ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                                    : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                     }`}
                             >
                                 <Moon className="h-6 w-6" />
@@ -120,8 +120,8 @@ export default function SettingsPage() {
                             <button
                                 onClick={() => setTheme("system")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "system"
-                                        ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
-                                        : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                    ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                                    : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                     }`}
                             >
                                 <Monitor className="h-6 w-6" />

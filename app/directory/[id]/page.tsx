@@ -70,14 +70,16 @@ export default function DirectoryProfilePage() {
 
             {/* Header / Bio Card */}
             <Card className="border-border/60 bg-card overflow-hidden">
-                <div className="h-32 w-full opacity-80" style={{ background: roleGradient }} />
+                <div className="h-40 w-full opacity-90 relative overflow-hidden" style={{ background: roleGradient }}>
+                    <div className="absolute inset-0 bg-[url('https://assets.hackclub.com/pattern.svg')] bg-repeat opacity-[0.08] mix-blend-overlay" />
+                </div>
                 <CardContent className="relative px-6 pb-6 pt-0 sm:px-10">
-                    <div className="flex flex-col sm:flex-row gap-6 relative -top-12">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 relative -top-16 text-center sm:text-left">
 
                         {/* Avatar */}
-                        <div className="relative shrink-0">
+                        <div className="relative shrink-0 mx-auto sm:mx-0">
                             <div
-                                className="flex h-32 w-32 items-center justify-center rounded-3xl border-4 border-card bg-muted text-4xl font-black text-white shadow-2xl overflow-hidden"
+                                className="flex h-36 w-36 items-center justify-center rounded-full border-4 border-card bg-muted text-5xl font-black text-white shadow-xl overflow-hidden"
                                 style={{ background: isSupervisor ? "#8492a6" : roleGradient }}
                             >
                                 {!isSupervisor && profileUser.avatar ? (
@@ -94,11 +96,11 @@ export default function DirectoryProfilePage() {
                         </div>
 
                         {/* Title / Bio info */}
-                        <div className="flex-1 pt-12 sm:pt-14 space-y-4">
-                            <div>
-                                <h1 className="text-3xl font-black text-foreground">{profileUser.name}</h1>
-                                <p className="text-lg font-medium text-muted-foreground mt-1 flex items-center gap-2">
-                                    <Badge variant="outline" className="border-primary text-primary bg-primary/10">
+                        <div className="flex-1 pt-4 sm:pt-16 space-y-4 w-full">
+                            <div className="space-y-2">
+                                <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">{profileUser.name}</h1>
+                                <p className="text-lg font-medium text-muted-foreground flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                                    <Badge variant="outline" className="border-primary text-primary bg-primary/10 px-3 py-1 text-sm">
                                         {displayTitle}
                                     </Badge>
                                     {profileUser.tags?.map(tag => (
@@ -109,10 +111,10 @@ export default function DirectoryProfilePage() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-1.5">
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm font-medium text-muted-foreground">
+                                <div className="flex items-center gap-1.5 hover:text-foreground transition-colors">
                                     <Mail className="h-4 w-4" />
-                                    <a href={`mailto:${profileUser.email}`} className="hover:underline">{profileUser.email}</a>
+                                    <a href={`mailto:${profileUser.email}`}>{profileUser.email}</a>
                                 </div>
                                 {profileUser.joinDate && (
                                     <div className="flex items-center gap-1.5">
@@ -123,7 +125,7 @@ export default function DirectoryProfilePage() {
                             </div>
 
                             {profileUser.bio && (
-                                <div className="mt-4 p-4 rounded-xl bg-muted/30 border border-border/50 text-foreground leading-relaxed">
+                                <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-muted/40 border border-border/50 text-foreground leading-relaxed text-left shadow-sm">
                                     {profileUser.bio}
                                 </div>
                             )}
