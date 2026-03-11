@@ -25,6 +25,8 @@ import {
 import { toast } from "sonner"
 import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink, Trash2, Crown, Plus, Check } from "lucide-react"
 import type { Project, ProjectStatus } from "@/lib/types"
+// @ts-ignore
+import confetti from "canvas-confetti"
 
 const TABS: { key: ProjectStatus | "all"; label: string; color: string }[] = [
   { key: "all", label: "All", color: "#8492a6" },
@@ -49,7 +51,7 @@ function initials(name: string) {
 
 export default function LeaderProjectsPage() {
   const { user } = useAuth()
-  const { projects, users, addProject, updateProjectStatus, deleteProject } = useData()
+  const { projects, users, kudos, addProject, updateProjectStatus, deleteProject, addKudo, removeKudo } = useData()
   const [tab, setTab] = useState<ProjectStatus | "all">("all")
   const [selected, setSelected] = useState<Project | null>(null)
   const [comment, setComment] = useState("")
@@ -73,6 +75,26 @@ export default function LeaderProjectsPage() {
 
   function getMemberName(id: string) {
     return users.find((u) => u.id === id)?.name ?? id
+  }
+
+  function getKudoCount(projectId: string) {
+    return kudos.filter(k => k.projectId === projectId).length
+  }
+
+  function hasGivenKudo(projectId: string) {
+    if (!user) return false
+    return kudos.some(k => k.projectId === projectId && k.userId === user.id)
+  }
+
+  async function handleKudo(e: React.MouseEvent, projectId: string) {
+    e.stopPropagation() // prevent opening project details
+    if (!user) return
+    if (hasGivenKudo(projectId)) {
+      await removeKudo(projectId, user.id)
+    } else {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
+      await addKudo(projectId, user.id)
+    }
   }
 
   async function handleLeaderCreate() {
@@ -309,7 +331,21 @@ export default function LeaderProjectsPage() {
                         </div>
                       ))}
                     </div>
-                    <span className="text-xs text-muted-foreground">{project.category}</span>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{project.category}</span>
+                      {project.status === "completed" && (
+                        <button
+                          onClick={(e) => handleKudo(e, project.id)}
+                          className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold transition-all spring-press border ${hasGivenKudo(project.id)
+                            ? "border-[#33d6a6] bg-[#33d6a6]/15 text-[#33d6a6]"
+                            : "border-border text-muted-foreground hover:border-[#33d6a6] hover:text-[#33d6a6]"
+                            }`}
+                        >
+                          🎉 {getKudoCount(project.id) > 0 ? getKudoCount(project.id) : ""}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

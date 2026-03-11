@@ -25,6 +25,8 @@ import {
 import { toast } from "sonner"
 import { FolderKanban, Plus, ExternalLink, MessageSquare, Check, Globe } from "lucide-react"
 import type { ProjectStatus } from "@/lib/types"
+// @ts-ignore
+import confetti from "canvas-confetti"
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
   proposed: "#f1c40f",
@@ -81,6 +83,11 @@ export default function MemberProjectsPage() {
     if (hasGivenKudo(projectId)) {
       await removeKudo(projectId, user!.id)
     } else {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      })
       await addKudo(projectId, user!.id)
     }
   }

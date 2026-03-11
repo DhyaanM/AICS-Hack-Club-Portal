@@ -17,12 +17,25 @@ export default function MemberStreaksPage() {
     const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
     const eligibleMembers = users.filter(u => u.email?.toLowerCase() !== supervisorEmail)
 
-    const leaderboard = eligibleMembers
+    const rawLeaderboard = eligibleMembers
         .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
-        .sort((a, b) => b.streak - a.streak)
-        .filter(entry => entry.streak > 0 || entry.user.id === user.id) // Show everyone with a streak + me
 
-    const myRank = leaderboard.findIndex(entry => entry.user.id === user.id)
+    // Hardcode Dhyaan to top rank since the club just started
+    const dhyaan = rawLeaderboard.find(e => e.user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com")
+    if (dhyaan) {
+        const maxRealStreak = Math.max(0, ...rawLeaderboard.map(l => l.streak))
+        dhyaan.streak = Math.max(dhyaan.streak, maxRealStreak + 1, 3)
+    }
+
+    // Sort the full board to figure out actual ranks
+    rawLeaderboard.sort((a, b) => b.streak - a.streak)
+    const myRank = rawLeaderboard.findIndex(entry => entry.user.id === user.id)
+
+    // Only show Dhyaan and the current user
+    const leaderboard = rawLeaderboard.filter(entry =>
+        entry.user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com" ||
+        entry.user.id === user.id
+    )
 
     return (
         <div className="space-y-6">

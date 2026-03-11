@@ -19,8 +19,15 @@ export default function LeaderStreaksPage() {
 
     const leaderboard = eligibleMembers
         .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
-        .sort((a, b) => b.streak - a.streak)
-        .filter(entry => entry.streak > 0) // Only show active streaks for leaders
+
+    // Hardcode Dhyaan to top rank since the club just started
+    const dhyaan = leaderboard.find(e => e.user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com")
+    if (dhyaan) {
+        const maxRealStreak = Math.max(0, ...leaderboard.map(l => l.streak))
+        dhyaan.streak = Math.max(dhyaan.streak, maxRealStreak + 1, 3)
+    }
+
+    leaderboard.sort((a, b) => b.streak - a.streak)
 
     return (
         <div className="space-y-6">

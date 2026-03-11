@@ -560,20 +560,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // ─── Kudos ────────────────────────────────────────────────────────────────
   const addKudo = useCallback(async (projectId: string, userId: string) => {
+    const kudoId = `kudo-${generateId()}`
+    // Optimistic update
+    setKudos(prev => [...prev, { id: kudoId, projectId, userId, createdAt: today() }])
+
     const { error } = await supabase.from("project_kudos").insert({
-      id: `kudo-${generateId()}`,
+      id: kudoId,
       project_id: projectId,
       user_id: userId,
       created_at: today(),
     })
-    if (error) console.error("addKudo error:", error)
+    if (error) {
+      console.error("addKudo error:", error)
+      // Revert optimistic update on error
+      setKudos(prev => prev.filter(k => k.id !== kudoId))
+    }
   }, [])
 
   const removeKudo = useCallback(async (projectId: string, userId: string) => {
-    await supabase.from("project_kudos")
+    // Optimistic update
+    setKudos(prev => prev.filter(k => !(k.projectId === projectId && k.userId === userId)))
+
+    const { error } = await supabase.from("project_kudos")
       .delete()
       .eq("project_id", projectId)
       .eq("user_id", userId)
+
+    if (error) {
+      console.error("removeKudo error:", error)
+      // We could revert here by refetching, but let the subscription handle it
+    }
   }, [])
 
   return (
