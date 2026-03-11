@@ -22,7 +22,8 @@ import {
   Flame,
   Settings,
 } from "lucide-react"
-import { useState, type ReactNode } from "react"
+import { useState, useEffect, type ReactNode } from "react"
+import { useTheme } from "next-themes"
 
 interface NavItem {
   href: string
@@ -69,9 +70,17 @@ export function DashboardShell({
   const router = useRouter()
   const { user: authUser, logout } = useAuth()
   const { users } = useData()
+  const { theme, setTheme } = useTheme()
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const user = users.find((u) => u.email === authUser?.email) || authUser
+
+  // Sync theme with user preference from DB
+  useEffect(() => {
+    if (user?.theme_preference && user.theme_preference !== theme) {
+      setTheme(user.theme_preference)
+    }
+  }, [user?.theme_preference, theme, setTheme])
 
   if (!user) return null
 

@@ -10,6 +10,7 @@ export interface User {
   tags: string[]
   title?: string
   bio?: string
+  theme_preference?: "light" | "dark" | "system"
 }
 
 export type AttendanceStatus = "present" | "absent" | "late" | "excused" | "n/a"

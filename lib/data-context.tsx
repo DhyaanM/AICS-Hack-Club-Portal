@@ -47,6 +47,7 @@ function mapUser(row: Record<string, unknown>): User {
     title: row.title as string | undefined,
     avatar: row.avatar as string | undefined,
     bio: row.bio as string | undefined,
+    theme_preference: row.theme_preference as "light" | "dark" | "system" | undefined,
   }
 }
 
@@ -150,6 +151,7 @@ interface DataContextValue {
   updateMemberTags: (id: string, tags: string[]) => Promise<void>
   updateMemberTitle: (id: string, title: string) => Promise<void>
   updateMemberBio: (id: string, bio: string) => Promise<void>
+  updateThemePreference: (id: string, theme: "light" | "dark" | "system") => Promise<void>
 
   addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
   markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
@@ -352,6 +354,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ─── Bio ────────────────────────────────────────────────────────────────
   const updateMemberBio = useCallback(async (id: string, bio: string) => {
     await supabase.from("club_users").update({ bio }).eq("id", id)
+  }, [])
+
+  const updateThemePreference = useCallback(async (id: string, theme: "light" | "dark" | "system") => {
+    await supabase.from("club_users").update({ theme_preference: theme }).eq("id", id)
   }, [])
 
   // ─── Meetings ─────────────────────────────────────────────────────────────
@@ -616,6 +622,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateMemberTags,
         updateMemberTitle,
         updateMemberBio,
+        updateThemePreference,
         addMeeting,
         markAttendance,
         saveMeetingAttendance,

@@ -12,7 +12,7 @@ import { Save, UserCircle, Palette, Moon, Sun, Monitor } from "lucide-react"
 
 export default function SettingsPage() {
     const { user } = useAuth()
-    const { users, updateMemberBio } = useData()
+    const { users, updateMemberBio, updateThemePreference } = useData()
     const { theme, setTheme } = useTheme()
     const [bio, setBio] = useState("")
     const [isSaving, setIsSaving] = useState(false)
@@ -38,6 +38,17 @@ export default function SettingsPage() {
             toast.error("Failed to update bio: " + (err?.message ?? "Unknown error"))
         } finally {
             setIsSaving(false)
+        }
+    }
+
+    async function handleThemeChange(newTheme: "light" | "dark" | "system") {
+        setTheme(newTheme)
+        if (user) {
+            try {
+                await updateThemePreference(user.id, newTheme)
+            } catch (err) {
+                console.error("Failed to save theme preference:", err)
+            }
         }
     }
 
@@ -96,7 +107,7 @@ export default function SettingsPage() {
                     <CardContent>
                         <div className="grid grid-cols-3 gap-3">
                             <button
-                                onClick={() => setTheme("light")}
+                                onClick={() => handleThemeChange("light")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "light"
                                     ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
                                     : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -107,7 +118,7 @@ export default function SettingsPage() {
                             </button>
 
                             <button
-                                onClick={() => setTheme("dark")}
+                                onClick={() => handleThemeChange("dark")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "dark"
                                     ? "border-[#ec3750] bg-[#ec3750]/10 text-[#ec3750]"
                                     : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -118,7 +129,7 @@ export default function SettingsPage() {
                             </button>
 
                             <button
-                                onClick={() => setTheme("system")}
+                                onClick={() => handleThemeChange("system")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "system"
                                     ? "border-[#33d6a6] bg-[#33d6a6]/10 text-[#33d6a6]"
                                     : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
