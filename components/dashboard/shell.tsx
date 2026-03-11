@@ -76,15 +76,22 @@ export function DashboardShell({
   const user = users.find((u) => u.email === authUser?.email) || authUser
 
   // Sync theme with user preference from DB
+  // We only want to sync when the DATABASE value changes to avoid fighting the local state
   useEffect(() => {
     if (user?.theme_preference && user.theme_preference !== theme) {
-      setTheme(user.theme_preference)
+      // Small timeout to allow local state to settle if the change was initiated here
+      const timer = setTimeout(() => {
+        setTheme(user.theme_preference!)
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [user?.theme_preference, theme, setTheme])
+  }, [user?.theme_preference]) // Only depend on the DB value
 
   if (!user) return null
 
-  const nav = role === "leader" ? leaderNav : memberNav
+  const isSupervisor = user.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+  const rawNav = role === "leader" ? leaderNav : memberNav
+  const nav = isSupervisor ? rawNav.filter(item => item.href !== "/settings") : rawNav
 
   function handleLogout() {
     logout()
