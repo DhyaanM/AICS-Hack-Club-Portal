@@ -9,6 +9,7 @@ export interface User {
   joinDate: string
   tags: string[]
   title?: string
+  bio?: string
 }
 
 export type AttendanceStatus = "present" | "absent" | "late" | "excused" | "n/a"

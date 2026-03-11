@@ -20,6 +20,7 @@ import {
   Crown,
   Megaphone,
   Flame,
+  Settings,
 } from "lucide-react"
 import { useState, type ReactNode } from "react"
 
@@ -39,6 +40,7 @@ const leaderNav: NavItem[] = [
   { href: "/leaders/projects", label: "Projects", icon: FolderKanban, color: "#a633d6" },
   { href: "/leaders/reports", label: "Reports", icon: AlertTriangle, color: "#ec3750" },
   { href: "/leaders/announcements", label: "Announcements", icon: Megaphone, color: "#ff8c37" },
+  { href: "/settings", label: "Settings", icon: Settings, color: "#8492a6" },
 ]
 
 const memberNav: NavItem[] = [
@@ -48,6 +50,7 @@ const memberNav: NavItem[] = [
   { href: "/members/projects", label: "Projects", icon: FolderKanban, color: "#a633d6" },
   { href: "/members/leave", label: "Leave", icon: Clock, color: "#f1c40f" },
   { href: "/members/reports", label: "Reports", icon: AlertTriangle, color: "#ec3750" },
+  { href: "/settings", label: "Settings", icon: Settings, color: "#8492a6" },
 ]
 
 const roleGradient = {

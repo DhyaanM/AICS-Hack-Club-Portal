@@ -5,6 +5,7 @@ import { useData } from "@/lib/data-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Flame, Trophy } from "lucide-react"
 import { calculateStreak } from "@/lib/attendance-utils"
+import Link from "next/link"
 
 const STREAK_RANK_EMOJIS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 
@@ -60,9 +61,10 @@ export default function MemberStreaksPage() {
                         leaderboard.map((entry, idx) => {
                             const isMe = entry.user.id === user.id
                             return (
-                                <div
+                                <Link
                                     key={entry.user.id}
-                                    className={`flex items-center gap-4 rounded-xl px-4 py-3 transition-colors ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/40 shadow-sm" : "border border-border/40"}`}
+                                    href={`/directory/${entry.user.id}`}
+                                    className={`flex items-center gap-4 rounded-xl px-4 py-3 transition-colors hover:scale-[1.01] active:scale-[0.99] ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/40 shadow-sm" : "border border-border/40 hover:bg-muted/20"}`}
                                 >
                                     <span className="text-xl w-8 text-center select-none font-black text-muted-foreground/50">
                                         {STREAK_RANK_EMOJIS[idx] ?? `${idx + 1}.`}
@@ -79,7 +81,7 @@ export default function MemberStreaksPage() {
                                         <Flame className="h-5 w-5 text-[#ff8c37]" />
                                         <span className="text-lg font-black text-[#ff8c37]">{entry.streak}</span>
                                     </div>
-                                </div>
+                                </Link>
                             )
                         })
                     )}

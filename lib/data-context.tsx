@@ -46,6 +46,7 @@ function mapUser(row: Record<string, unknown>): User {
     tags: (row.tags as string[]) ?? [],
     title: row.title as string | undefined,
     avatar: row.avatar as string | undefined,
+    bio: row.bio as string | undefined,
   }
 }
 
@@ -148,6 +149,7 @@ interface DataContextValue {
   updateMemberName: (id: string, name: string) => Promise<void>
   updateMemberTags: (id: string, tags: string[]) => Promise<void>
   updateMemberTitle: (id: string, title: string) => Promise<void>
+  updateMemberBio: (id: string, bio: string) => Promise<void>
 
   addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
   markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
@@ -345,6 +347,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
 
     return filePath
+  }, [])
+
+  // ─── Bio ────────────────────────────────────────────────────────────────
+  const updateMemberBio = useCallback(async (id: string, bio: string) => {
+    await supabase.from("club_users").update({ bio }).eq("id", id)
   }, [])
 
   // ─── Meetings ─────────────────────────────────────────────────────────────
@@ -608,6 +615,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateMemberName,
         updateMemberTags,
         updateMemberTitle,
+        updateMemberBio,
         addMeeting,
         markAttendance,
         saveMeetingAttendance,
