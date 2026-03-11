@@ -42,11 +42,11 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+                <h1 className="text-2xl font-bold text-foreground">User Settings</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Manage your profile and app preferences.
+                    Manage your public profile and interface preferences.
                 </p>
             </div>
 
@@ -109,7 +109,7 @@ export default function SettingsPage() {
                             <button
                                 onClick={() => setTheme("dark")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "dark"
-                                    ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                                    ? "border-[#ec3750] bg-[#ec3750]/10 text-[#ec3750]"
                                     : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                     }`}
                             >
@@ -120,7 +120,7 @@ export default function SettingsPage() {
                             <button
                                 onClick={() => setTheme("system")}
                                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all spring-press ${theme === "system"
-                                    ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                                    ? "border-[#33d6a6] bg-[#33d6a6]/10 text-[#33d6a6]"
                                     : "border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                                     }`}
                             >

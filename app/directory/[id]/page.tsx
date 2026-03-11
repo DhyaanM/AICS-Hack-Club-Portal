@@ -3,7 +3,7 @@
 import { useData } from "@/lib/data-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FolderKanban, Crown, Calendar, Mail, ExternalLink, ArrowLeft } from "lucide-react"
+import { FolderKanban, Crown, Calendar, Mail, ExternalLink, ArrowLeft, UserCircle } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 
@@ -60,18 +60,28 @@ export default function DirectoryProfilePage() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Back navigation */}
-            <div>
-                <Link href="/members/streaks" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft className="h-4 w-4" /> Back to Streaks
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">Member Profile</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Public portfolio and project showcase for {profileUser.name}.
+                    </p>
+                </div>
+                <Link href="/members/streaks" className="inline-flex items-center gap-2 text-sm font-medium text-[#338eda] hover:underline">
+                    <ArrowLeft className="h-4 w-4" /> Back to Leaderboard
                 </Link>
             </div>
 
             {/* Profile Header */}
             <Card className="border-border/60 bg-card overflow-hidden">
-                <div className="h-2 w-full" style={{ background: roleGradient }} />
-                <CardContent className="p-6 sm:p-10">
+                <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <UserCircle className="h-5 w-5 text-[#338eda]" />
+                        Member Details
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 pt-2 sm:p-10 sm:pt-4">
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
 
                         {/* Avatar */}
