@@ -20,6 +20,7 @@ import type {
   ReportStatus,
   Announcement,
   ProjectKudo,
+  ProjectInvitation,
 } from "./types"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "./auth-context"
@@ -114,6 +115,17 @@ function mapReport(row: Record<string, unknown>): ProblemReport {
   }
 }
 
+function mapInvitation(row: Record<string, unknown>): ProjectInvitation {
+  return {
+    id: row.id as string,
+    projectId: row.project_id as string,
+    inviterId: row.inviter_id as string,
+    inviteeId: row.invitee_id as string,
+    status: row.status as "pending" | "accepted" | "declined",
+    createdAt: row.created_at as string,
+  }
+}
+
 function mapAnnouncement(row: Record<string, unknown>): Announcement {
   return {
     id: row.id as string,
@@ -153,6 +165,11 @@ interface DataContextValue {
   updateMemberBio: (id: string, bio: string) => Promise<void>
   updateThemePreference: (id: string, theme: "light" | "dark" | "system") => Promise<void>
 
+  invitations: ProjectInvitation[]
+  createInvitation: (projectId: string, inviteeId: string) => Promise<void>
+  acceptInvitation: (invitationId: string) => Promise<void>
+  declineInvitation: (invitationId: string) => Promise<void>
+
   addMeeting: (meeting: Omit<Meeting, "id" | "attendance">) => Promise<void>
   markAttendance: (meetingId: string, userId: string, status: AttendanceStatus) => Promise<void>
   saveMeetingAttendance: (meetingId: string, records: { userId: string; status: AttendanceStatus }[]) => Promise<void>
@@ -190,11 +207,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<ProblemReport[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [kudos, setKudos] = useState<ProjectKudo[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [invitations, setInvitations] = useState<ProjectInvitation[]>([]) // Added invitations state
+  const [isLoading, setIsLoading] = useState(true) // Renamed to isLoading for consistency with original
   const { user } = useAuth()
 
   // ── Initial Load ──────────────────────────────────────────────────────────
-  async function loadAll() {
+  const fetchData = useCallback(async () => { // Renamed loadAll to fetchData
     setIsLoading(true)
     const [
       { data: usersData },
@@ -205,6 +223,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       { data: reportsData },
       { data: announcementsData },
       { data: kudosData },
+      { data: invitationsData }, // Added invitationsData
     ] = await Promise.all([
       supabase.from("club_users").select("*"),
       supabase.from("meetings").select("*").order("date"),
@@ -214,6 +233,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.from("problem_reports").select("*").order("created_at", { ascending: false }),
       supabase.from("announcements").select("*").order("created_at", { ascending: false }),
       supabase.from("project_kudos").select("*"),
+      supabase.from("project_invitations").select("*"), // Fetch project invitations
     ])
 
     // Fetch signed URLs for avatars if any
@@ -245,8 +265,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setReports((reportsData ?? []).map(mapReport))
     setAnnouncements((announcementsData ?? []).map(mapAnnouncement))
     setKudos((kudosData ?? []).map(mapKudo))
+    setInvitations((invitationsData ?? []).map(mapInvitation)) // Set invitations
     setIsLoading(false)
-  }
+  }, [])
 
   useEffect(() => {
     // Only load and subscribe if we actually have a user
@@ -258,27 +279,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setReports([])
       setAnnouncements([])
       setKudos([])
+      setInvitations([]) // Clear invitations
       setIsLoading(false)
       return
     }
 
-    loadAll()
+    fetchData() // Call fetchData
 
     // Real-time subscriptions — reload affected slice on any change
     const channels = [
-      supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, loadAll),
-      supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, loadAll),
-      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, loadAll),
-      supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, loadAll),
-      supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, loadAll),
-      supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, loadAll),
-      supabase.channel("ann_changes").on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, loadAll),
-      supabase.channel("kudos_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, loadAll),
+      supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, fetchData),
+      supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, fetchData),
+      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, fetchData),
+      supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, fetchData),
+      supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, fetchData),
+      supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, fetchData),
+      supabase.channel("ann_changes").on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, fetchData),
+      supabase.channel("kudos_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, fetchData),
+      supabase.channel("invitations_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_invitations" }, fetchData), // Added invitations channel
     ]
 
     channels.forEach((c) => c.subscribe())
     return () => { channels.forEach((c) => supabase.removeChannel(c)) }
-  }, [user])
+  }, [user, fetchData])
 
   // ─── Members ──────────────────────────────────────────────────────────────
   const addMember = useCallback(async (member: Omit<User, "id" | "role" | "joinDate">) => {
@@ -405,35 +428,59 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // ─── Projects ─────────────────────────────────────────────────────────────
   const addProject = useCallback(async (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => {
+    if (!user) return
+
+    // Extract member IDs for invitations
+    const { memberIds, ...restOfProject } = project
+
     const now = today()
-    const { error } = await supabase.from("projects").insert({
-      title: project.title,
-      description: project.description,
-      status: project.status,
-      created_by: project.createdBy,
-      member_ids: project.memberIds,
-      is_group: project.isGroup,
-      category: project.category,
-      type: project.type,
-      links: project.links,
-      image_url: project.imageUrl,
-      progress_notes: project.progressNotes ?? [],
-      created_at: now,
-      updated_at: now,
-    })
+    const { data: newProject, error } = await supabase
+      .from("projects")
+      .insert([
+        {
+          title: restOfProject.title,
+          description: restOfProject.description,
+          status: restOfProject.status,
+          created_by: user.id, // Project creator is the current user
+          member_ids: [user.id], // Owner is always in member_ids initially
+          is_group: restOfProject.isGroup,
+          category: restOfProject.category,
+          type: restOfProject.type,
+          links: restOfProject.links,
+          image_url: restOfProject.imageUrl,
+          progress_notes: restOfProject.progressNotes ?? [],
+          created_at: now,
+          updated_at: now,
+        }
+      ])
+      .select()
+      .single()
 
     if (error) {
       console.error("addProject error:", error)
       throw error
     }
 
-    const memberName = users.find(u => u.id === project.createdBy)?.name || "A member"
+    // Create invitations for each member
+    if (memberIds && memberIds.length > 0) {
+      const invites = memberIds.filter(id => id !== user.id).map(inviteeId => ({
+        project_id: newProject.id,
+        inviter_id: user.id,
+        invitee_id: inviteeId,
+        status: 'pending'
+      }))
+
+      if (invites.length > 0) {
+        await supabase.from("project_invitations").insert(invites)
+      }
+    }
+
     fetch("/api/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "project", memberName, details: project }),
+      body: JSON.stringify({ type: "project", memberName: user.name, details: project }),
     }).catch(console.error)
-  }, [users])
+  }, [user])
 
   const updateProjectStatus = useCallback(async (id: string, status: ProjectStatus, leaderComment?: string) => {
     if (user?.role !== "leader") {
@@ -457,6 +504,67 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteProject = useCallback(async (id: string) => {
     await supabase.from("projects").delete().eq("id", id)
+  }, [])
+
+  const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
+    const snakeCaseUpdates: Record<string, unknown> = {}
+    for (const key in updates) {
+      if (Object.prototype.hasOwnProperty.call(updates, key)) {
+        const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+        snakeCaseUpdates[snakeKey] = (updates as any)[key];
+      }
+    }
+    snakeCaseUpdates.updated_at = today();
+    await supabase.from("projects").update(snakeCaseUpdates).eq("id", id)
+  }, [])
+
+  // ─── Project Invitations ──────────────────────────────────────────────────
+  const createInvitation = useCallback(async (projectId: string, inviteeId: string) => {
+    if (!user) return
+    await supabase.from("project_invitations").insert([{
+      project_id: projectId,
+      inviter_id: user.id,
+      invitee_id: inviteeId,
+      status: 'pending'
+    }])
+  }, [user])
+
+  const acceptInvitation = useCallback(async (invitationId: string) => {
+    if (!user) return
+
+    // 1. Get the invitation details
+    const { data: invite, error: inviteError } = await supabase
+      .from("project_invitations")
+      .select("*")
+      .eq("id", invitationId)
+      .single()
+
+    if (inviteError || !invite) throw inviteError || new Error("Invitation not found")
+
+    // 2. Add member to project member_ids
+    const { data: project, error: projectError } = await supabase
+      .from("projects")
+      .select("member_ids")
+      .eq("id", invite.project_id)
+      .single()
+
+    if (projectError || !project) throw projectError || new Error("Project not found")
+
+    const newMemberIds = Array.from(new Set([...(project.member_ids || []), user.id]))
+
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({ member_ids: newMemberIds })
+      .eq("id", invite.project_id)
+
+    if (updateError) throw updateError
+
+    // 3. Update invitation status
+    await supabase.from("project_invitations").update({ status: 'accepted' }).eq("id", invitationId)
+  }, [user])
+
+  const declineInvitation = useCallback(async (invitationId: string) => {
+    await supabase.from("project_invitations").update({ status: 'declined' }).eq("id", invitationId)
   }, [])
 
   // ─── Leave Requests ───────────────────────────────────────────────────────
@@ -623,6 +731,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateMemberTitle,
         updateMemberBio,
         updateThemePreference,
+        invitations,
+        createInvitation,
+        acceptInvitation,
+        declineInvitation,
         addMeeting,
         markAttendance,
         saveMeetingAttendance,

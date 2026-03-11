@@ -14,7 +14,11 @@ import {
   Megaphone,
   Pin,
   Trophy,
+  Check,
+  X,
+  Mail,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 
 const statusColors: Record<string, string> = {
@@ -28,7 +32,7 @@ const STREAK_RANK_EMOJIS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
 export default function MemberDashboard() {
   const { user } = useAuth()
-  const { meetings, projects, leaveRequests, announcements, users } = useData()
+  const { meetings, projects, leaveRequests, announcements, users, invitations, acceptInvitation, declineInvitation } = useData()
 
   if (!user) return null
 
@@ -59,6 +63,8 @@ export default function MemberDashboard() {
     .sort((a, b) => b.streak - a.streak)
     .slice(0, 5)
 
+  const myInvitations = invitations.filter(inv => inv.inviteeId === user.id && inv.status === 'pending')
+
   return (
     <div className="space-y-6">
       <div>
@@ -70,9 +76,52 @@ export default function MemberDashboard() {
         </p>
       </div>
 
-      {/* Announcements */}
-      {sortedAnnouncements.length > 0 && (
-        <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Announcements & Invitations */}
+      {(sortedAnnouncements.length > 0 || myInvitations.length > 0) && (
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Project Invitations */}
+          {myInvitations.map((inv) => {
+            const project = projects.find(p => p.id === inv.projectId)
+            const inviter = users.find(u => u.id === inv.inviterId)
+            return (
+              <div
+                key={inv.id}
+                className="flex items-center gap-3 rounded-xl border-2 border-primary/20 bg-primary/5 px-4 py-3 transition-all"
+                style={{ borderStyle: "dashed" }}
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20">
+                  <Mail className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-foreground leading-snug">
+                    Project Invitation: {project?.title || "Unknown Project"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {inviter?.name || "A member"} invited you to join this group project.
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="icon"
+                    className="h-8 w-8 rounded-full bg-hc-green hover:bg-hc-green/80"
+                    onClick={() => acceptInvitation(inv.id)}
+                  >
+                    <Check className="h-4 w-4 text-white" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 rounded-full text-hc-red hover:bg-hc-red/10"
+                    onClick={() => declineInvitation(inv.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+
+          {/* Regular Announcements */}
           {sortedAnnouncements.map((ann) => (
             <div
               key={ann.id}

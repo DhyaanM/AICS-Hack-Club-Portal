@@ -91,3 +91,12 @@ export interface ProjectKudo {
   userId: string
   createdAt: string
 }
+
+export interface ProjectInvitation {
+  id: string
+  projectId: string
+  inviterId: string
+  inviteeId: string
+  status: "pending" | "accepted" | "declined"
+  createdAt: string
+}
