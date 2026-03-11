@@ -21,20 +21,25 @@ export default function MemberStreaksPage() {
     const rawLeaderboard = eligibleMembers
         .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
 
-    // Hardcode Dhyaan to top rank since the club just started
-    const dhyaan = rawLeaderboard.find(e => e.user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com")
-    if (dhyaan) {
+    // Hardcode Dhyaan and the user to top rank since the club just started
+    const boostedEmails = ["s936832@aics.espritscholen.nl", "dhyaanmanganahalli@gmail.com"]
+    const boostedEntries = rawLeaderboard.filter(e => boostedEmails.includes(e.user.email?.toLowerCase() || ""))
+
+    if (boostedEntries.length > 0) {
         const maxRealStreak = Math.max(0, ...rawLeaderboard.map(l => l.streak))
-        dhyaan.streak = Math.max(dhyaan.streak, maxRealStreak + 1, 3)
+        boostedEntries.forEach((entry, i) => {
+            // Give the first boosted email (the user) the highest priority
+            entry.streak = Math.max(entry.streak, maxRealStreak + boostedEntries.length - i, 5 - i)
+        })
     }
 
     // Sort the full board to figure out actual ranks
     rawLeaderboard.sort((a, b) => b.streak - a.streak)
     const myRank = rawLeaderboard.findIndex(entry => entry.user.id === user.id)
 
-    // Only show Dhyaan and the current user
+    // Only show boosted users and the current user
     const leaderboard = rawLeaderboard.filter(entry =>
-        entry.user.email?.toLowerCase() === "dhyaanmanganahalli@gmail.com" ||
+        boostedEmails.includes(entry.user.email?.toLowerCase() || "") ||
         entry.user.id === user.id
     )
 
