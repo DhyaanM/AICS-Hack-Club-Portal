@@ -68,18 +68,16 @@ export default function DirectoryProfilePage() {
                 </Link>
             </div>
 
-            {/* Header / Bio Card */}
+            {/* Profile Header */}
             <Card className="border-border/60 bg-card overflow-hidden">
-                <div className="h-40 w-full opacity-90 relative overflow-hidden" style={{ background: roleGradient }}>
-                    <div className="absolute inset-0 bg-[url('https://assets.hackclub.com/pattern.svg')] bg-repeat opacity-[0.08] mix-blend-overlay" />
-                </div>
-                <CardContent className="relative px-6 pb-6 pt-0 sm:px-10">
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 relative -top-16 text-center sm:text-left">
+                <div className="h-2 w-full" style={{ background: roleGradient }} />
+                <CardContent className="p-6 sm:p-10">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
 
                         {/* Avatar */}
-                        <div className="relative shrink-0 mx-auto sm:mx-0">
+                        <div className="relative shrink-0">
                             <div
-                                className="flex h-36 w-36 items-center justify-center rounded-full border-4 border-card bg-muted text-5xl font-black text-white shadow-xl overflow-hidden"
+                                className="flex h-32 w-32 items-center justify-center rounded-3xl border border-border bg-muted text-4xl font-black text-white shadow-sm overflow-hidden"
                                 style={{ background: isSupervisor ? "#8492a6" : roleGradient }}
                             >
                                 {!isSupervisor && profileUser.avatar ? (
@@ -89,18 +87,18 @@ export default function DirectoryProfilePage() {
                                 )}
                             </div>
                             {isFounder && (
-                                <div className="absolute -right-2 -top-2 rotate-[25deg] drop-shadow-md bg-card p-1.5 rounded-full border border-border">
-                                    <Crown className="h-6 w-6 fill-yellow-400 text-yellow-600" />
+                                <div className="absolute -right-3 -top-3 rotate-[25deg] drop-shadow-sm bg-card p-2 rounded-full border border-border">
+                                    <Crown className="h-6 w-6 fill-yellow-400 text-yellow-500" />
                                 </div>
                             )}
                         </div>
 
                         {/* Title / Bio info */}
-                        <div className="flex-1 pt-4 sm:pt-16 space-y-4 w-full">
-                            <div className="space-y-2">
-                                <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">{profileUser.name}</h1>
-                                <p className="text-lg font-medium text-muted-foreground flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                    <Badge variant="outline" className="border-primary text-primary bg-primary/10 px-3 py-1 text-sm">
+                        <div className="flex-1 space-y-5 text-center sm:text-left mt-2 sm:mt-0">
+                            <div className="space-y-1">
+                                <h1 className="text-3xl font-bold text-foreground tracking-tight">{profileUser.name}</h1>
+                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                                    <Badge variant="secondary" className="font-semibold" style={{ color: profileUser.role === 'leader' ? '#ff8c37' : '#338eda' }}>
                                         {displayTitle}
                                     </Badge>
                                     {profileUser.tags?.map(tag => (
@@ -108,25 +106,27 @@ export default function DirectoryProfilePage() {
                                             {tag}
                                         </Badge>
                                     ))}
-                                </p>
+                                </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm font-medium text-muted-foreground">
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-5 text-sm font-medium text-muted-foreground">
                                 <div className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                                    <Mail className="h-4 w-4" />
+                                    <Mail className="h-4 w-4 shrink-0" />
                                     <a href={`mailto:${profileUser.email}`}>{profileUser.email}</a>
                                 </div>
                                 {profileUser.joinDate && (
                                     <div className="flex items-center gap-1.5">
-                                        <Calendar className="h-4 w-4" />
+                                        <Calendar className="h-4 w-4 shrink-0" />
                                         Joined {new Date(profileUser.joinDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
                                     </div>
                                 )}
                             </div>
 
                             {profileUser.bio && (
-                                <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-muted/40 border border-border/50 text-foreground leading-relaxed text-left shadow-sm">
-                                    {profileUser.bio}
+                                <div className="pt-2">
+                                    <p className="text-foreground/90 leading-relaxed text-left text-sm whitespace-pre-wrap">
+                                        {profileUser.bio}
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -199,6 +199,6 @@ export default function DirectoryProfilePage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     )
 }
