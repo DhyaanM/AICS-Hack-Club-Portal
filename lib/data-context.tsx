@@ -532,36 +532,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const acceptInvitation = useCallback(async (invitationId: string) => {
     if (!user) return
 
-    // 1. Get the invitation details
-    const { data: invite, error: inviteError } = await supabase
-      .from("project_invitations")
-      .select("*")
-      .eq("id", invitationId)
-      .single()
+    const { error } = await supabase.rpc('accept_project_invitation', {
+      invitation_uuid: invitationId
+    })
 
-    if (inviteError || !invite) throw inviteError || new Error("Invitation not found")
+    if (error) throw error
 
-    // 2. Add member to project member_ids
-    const { data: project, error: projectError } = await supabase
-      .from("projects")
-      .select("member_ids")
-      .eq("id", invite.project_id)
-      .single()
-
-    if (projectError || !project) throw projectError || new Error("Project not found")
-
-    const newMemberIds = Array.from(new Set([...(project.member_ids || []), user.id]))
-
-    const { error: updateError } = await supabase
-      .from("projects")
-      .update({ member_ids: newMemberIds })
-      .eq("id", invite.project_id)
-
-    if (updateError) throw updateError
-
-    // 3. Update invitation status
-    await supabase.from("project_invitations").update({ status: 'accepted' }).eq("id", invitationId)
-  }, [user])
+    await fetchData()
+  }, [user, fetchData])
 
   const declineInvitation = useCallback(async (invitationId: string) => {
     await supabase.from("project_invitations").update({ status: 'declined' }).eq("id", invitationId)
