@@ -394,7 +394,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addProject = useCallback(async (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => {
     const now = today()
     const { error } = await supabase.from("projects").insert({
-      id: `proj-${generateId()}`,
       title: project.title,
       description: project.description,
       status: project.status,
@@ -450,7 +449,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ─── Leave Requests ───────────────────────────────────────────────────────
   const addLeaveRequest = useCallback(async (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => {
     const { error } = await supabase.from("leave_requests").insert({
-      id: `leave-${generateId()}`,
       user_id: req.userId,
       meeting_id: req.meetingId,
       reason: req.reason,
@@ -484,7 +482,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addReport = useCallback(async (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => {
     const now = today()
     const { error } = await supabase.from("problem_reports").insert({
-      id: `report-${generateId()}`,
       user_id: report.userId,
       title: report.title,
       description: report.description,

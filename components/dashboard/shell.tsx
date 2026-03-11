@@ -19,6 +19,7 @@ import {
   Clock,
   Crown,
   Megaphone,
+  Flame,
 } from "lucide-react"
 import { useState, type ReactNode } from "react"
 
@@ -33,18 +34,20 @@ const leaderNav: NavItem[] = [
   { href: "/leaders", label: "Dashboard", icon: LayoutDashboard, color: "#ec3750" },
   { href: "/leaders/members", label: "Members", icon: Users, color: "#338eda" },
   { href: "/leaders/attendance", label: "Attendance", icon: CalendarCheck, color: "#33d6a6" },
+  { href: "/leaders/streaks", label: "Streaks", icon: Flame, color: "#ff8c37" },
   { href: "/leaders/leaves", label: "Leaves", icon: Clock, color: "#f1c40f" },
   { href: "/leaders/projects", label: "Projects", icon: FolderKanban, color: "#a633d6" },
-  { href: "/leaders/reports", label: "Reports", icon: AlertTriangle, color: "#ff8c37" },
+  { href: "/leaders/reports", label: "Reports", icon: AlertTriangle, color: "#ec3750" },
   { href: "/leaders/announcements", label: "Announcements", icon: Megaphone, color: "#ff8c37" },
 ]
 
 const memberNav: NavItem[] = [
   { href: "/members", label: "Dashboard", icon: LayoutDashboard, color: "#ec3750" },
   { href: "/members/attendance", label: "Attendance", icon: CalendarCheck, color: "#33d6a6" },
+  { href: "/members/streaks", label: "Streaks", icon: Flame, color: "#ff8c37" },
   { href: "/members/projects", label: "Projects", icon: FolderKanban, color: "#a633d6" },
   { href: "/members/leave", label: "Leave", icon: Clock, color: "#f1c40f" },
-  { href: "/members/reports", label: "Reports", icon: AlertTriangle, color: "#ff8c37" },
+  { href: "/members/reports", label: "Reports", icon: AlertTriangle, color: "#ec3750" },
 ]
 
 const roleGradient = {

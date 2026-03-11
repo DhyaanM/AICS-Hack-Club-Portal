@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
 import { StatCard } from "@/components/dashboard/stat-card"
@@ -116,13 +117,15 @@ export default function MemberDashboard() {
           }
           subtitle={`${attended}/${totalMeetings} meetings`}
         />
-        <StatCard
-          label="Streak"
-          value={streak}
-          icon={<Flame className="h-5 w-5" />}
-          color="#ff8c37"
-          subtitle="consecutive meetings"
-        />
+        <Link href="/members/streaks" className="block transition-transform hover:scale-105">
+          <StatCard
+            label="Streak"
+            value={streak}
+            icon={<Flame className="h-5 w-5" />}
+            color="#ff8c37"
+            subtitle="consecutive meetings"
+          />
+        </Link>
         <StatCard
           label="Active Projects"
           value={activeProjects.length}
