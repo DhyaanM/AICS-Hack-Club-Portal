@@ -10,7 +10,11 @@ import {
   FolderKanban,
   Flame,
   Clock,
+  Megaphone,
+  Pin,
+  Trophy,
 } from "lucide-react"
+import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 
 const statusColors: Record<string, string> = {
   proposed: "var(--hc-yellow)",
@@ -19,42 +23,17 @@ const statusColors: Record<string, string> = {
   rejected: "var(--hc-red)",
 }
 
+const STREAK_RANK_EMOJIS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+
 export default function MemberDashboard() {
   const { user } = useAuth()
-  const { meetings, projects, leaveRequests } = useData()
+  const { meetings, projects, leaveRequests, announcements, users } = useData()
 
   if (!user) return null
 
   // Attendance stats
-  let totalMeetings = 0
-  let attended = 0
-  let streak = 0
-  const sorted = [...meetings].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
-
-  for (const m of sorted) {
-    const rec = m.attendance.find((a) => a.userId === user.id)
-    if (rec) {
-      totalMeetings++
-      if (rec.status === "present" || rec.status === "late") {
-        attended++
-      }
-    }
-  }
-
-  // Compute streak (consecutive present from most recent)
-  for (const m of sorted) {
-    const rec = m.attendance.find((a) => a.userId === user.id)
-    if (rec && (rec.status === "present" || rec.status === "late")) {
-      streak++
-    } else {
-      break
-    }
-  }
-
-  const attendancePct =
-    totalMeetings === 0 ? 0 : Math.round((attended / totalMeetings) * 100)
+  const { total: totalMeetings, attended, percentage: attendancePct } = calculateAttendanceStats(user.id, meetings)
+  const streak = calculateStreak(user.id, meetings)
 
   const myProjects = projects.filter((p) => p.memberIds.includes(user.id))
   const activeProjects = myProjects.filter(
@@ -62,6 +41,22 @@ export default function MemberDashboard() {
   )
   const myLeaves = leaveRequests.filter((l) => l.userId === user.id)
   const pendingLeaves = myLeaves.filter((l) => l.status === "pending")
+
+  // Announcements: pinned first, then by date
+  const sortedAnnouncements = [...announcements]
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+    .slice(0, 5)
+
+  // Streak leaderboard (top 5 members by streak, exclude supervisor)
+  const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
+  const eligibleMembers = users.filter(u => u.email?.toLowerCase() !== supervisorEmail)
+  const leaderboard = eligibleMembers
+    .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
+    .sort((a, b) => b.streak - a.streak)
+    .slice(0, 5)
 
   return (
     <div className="space-y-6">
@@ -73,6 +68,36 @@ export default function MemberDashboard() {
           Here is your club activity at a glance.
         </p>
       </div>
+
+      {/* Announcements */}
+      {sortedAnnouncements.length > 0 && (
+        <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {sortedAnnouncements.map((ann) => (
+            <div
+              key={ann.id}
+              className="flex items-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 transition-all"
+              style={ann.pinned ? { borderLeftWidth: "3px", borderLeftColor: "#ff8c37" } : {}}
+            >
+              <div
+                className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                style={{ background: "#ff8c37" + "18" }}
+              >
+                {ann.pinned
+                  ? <Pin className="h-3.5 w-3.5" style={{ color: "#ff8c37" }} />
+                  : <Megaphone className="h-3.5 w-3.5" style={{ color: "#ff8c37" }} />
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground leading-snug">{ann.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ann.content}</p>
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground/60">
+                {new Date(ann.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Stats */}
       <div
@@ -156,68 +181,109 @@ export default function MemberDashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Attendance */}
+        {/* Streak Leaderboard */}
         <Card className="border-border/60 bg-card">
           <CardHeader>
-            <CardTitle className="text-base">Recent Attendance</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Trophy className="h-4 w-4 text-[#ff8c37]" />
+              Streak Leaderboard
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {(() => {
-              const validMeetings = sorted.filter(m => {
-                const rec = m.attendance.find((a) => a.userId === user.id)
-                return rec && rec.status !== "n/a"
-              })
-
-              if (validMeetings.length === 0) {
-                return (
-                  <p className="py-4 text-center text-sm text-muted-foreground">
-                    No recent meetings.
-                  </p>
-                )
-              }
-
-              return validMeetings.slice(0, 5).map((m) => {
-                const rec = m.attendance.find((a) => a.userId === user.id)!
-                const status = rec.status
-                let color = ""
-                if (status === "present") color = "var(--hc-green)"
-                else if (status === "late") color = "var(--hc-yellow)"
-                else if (status === "absent") color = "var(--hc-red)"
-                else color = "#8492a6" // excused
-
+          <CardContent className="space-y-2">
+            {leaderboard.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">No streak data yet.</p>
+            ) : (
+              leaderboard.map((entry, idx) => {
+                const isMe = entry.user.id === user.id
                 return (
                   <div
-                    key={m.id}
-                    className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+                    key={entry.user.id}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30" : "border border-border/40"}`}
                   >
-                    <div>
-                      <p className="text-sm font-medium text-card-foreground">
-                        {m.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(m.date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                    <span className="text-base w-6 text-center select-none">
+                      {STREAK_RANK_EMOJIS[idx] ?? `${idx + 1}.`}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold truncate ${isMe ? "text-[#ff8c37]" : "text-foreground"}`}>
+                        {entry.user.name}{isMe && " (you)"}
                       </p>
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className="text-xs capitalize"
-                      style={{
-                        backgroundColor: color + "18",
-                        color,
-                      }}
-                    >
-                      {status}
-                    </Badge>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Flame className="h-4 w-4 text-[#ff8c37]" />
+                      <span className="text-sm font-bold text-[#ff8c37]">{entry.streak}</span>
+                    </div>
                   </div>
                 )
               })
-            })()}
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Attendance */}
+      <Card className="border-border/60 bg-card animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300" style={{ animationFillMode: "both" }}>
+        <CardHeader>
+          <CardTitle className="text-base">Recent Attendance</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {(() => {
+            const sorted = [...meetings].sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            )
+            const validMeetings = sorted.filter(m => {
+              const rec = m.attendance.find((a) => a.userId === user.id)
+              return rec && rec.status !== "n/a"
+            })
+
+            if (validMeetings.length === 0) {
+              return (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  No recent meetings.
+                </p>
+              )
+            }
+
+            return validMeetings.slice(0, 5).map((m) => {
+              const rec = m.attendance.find((a) => a.userId === user.id)!
+              const status = rec.status
+              let color = ""
+              if (status === "present") color = "var(--hc-green)"
+              else if (status === "late") color = "var(--hc-yellow)"
+              else if (status === "absent") color = "var(--hc-red)"
+              else color = "#8492a6" // excused
+
+              return (
+                <div
+                  key={m.id}
+                  className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">
+                      {m.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(m.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className="text-xs capitalize"
+                    style={{
+                      backgroundColor: color + "18",
+                      color,
+                    }}
+                  >
+                    {status}
+                  </Badge>
+                </div>
+              )
+            })
+          })()}
+        </CardContent>
+      </Card>
     </div>
   )
 }

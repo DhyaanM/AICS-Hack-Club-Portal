@@ -15,8 +15,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import type { User } from "@/lib/types"
 
 const ROLE_COLOR = { leader: "#ec3750", member: "#338eda" }
@@ -34,13 +35,11 @@ function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 }
 
-function getAttendancePct(userId: string, meetings: { attendance: { userId: string; status: string }[] }[]) {
-  let total = 0, attended = 0
-  for (const m of meetings) {
-    const rec = m.attendance.find((a) => a.userId === userId)
-    if (rec) { total++; if (rec.status === "present" || rec.status === "late") attended++ }
+function getMemberStats(userId: string, meetings: any[]) {
+  return {
+    ...calculateAttendanceStats(userId, meetings),
+    streak: calculateStreak(userId, meetings)
   }
-  return total === 0 ? null : Math.round((attended / total) * 100)
 }
 
 export default function MembersPage() {
@@ -191,9 +190,9 @@ export default function MembersPage() {
           ) : (
             <div className="divide-y divide-border/50">
               {sorted.map((member) => {
-                const pct = getAttendancePct(member.id, meetings)
+                const stats = getMemberStats(member.id, meetings)
                 const pctColor =
-                  pct === null ? "#8492a6" : pct >= 80 ? "#33d6a6" : pct >= 60 ? "#f1c40f" : "#ec3750"
+                  stats.total === 0 ? "#8492a6" : stats.percentage >= 80 ? "#33d6a6" : stats.percentage >= 60 ? "#f1c40f" : "#ec3750"
                 return (
                   <div
                     key={member.id}
@@ -264,11 +263,17 @@ export default function MembersPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="hidden sm:flex flex-col items-end gap-1">
-                      <span className="text-xs text-muted-foreground">Attendance</span>
-                      <span className="text-sm font-bold" style={{ color: pctColor }}>
-                        {pct !== null ? `${pct}%` : "-"}
-                      </span>
+                    <div className="hidden sm:flex items-center gap-4">
+                      <div className="flex flex-col items-center gap-0.5" title="Attendance Streak">
+                        <Flame className="h-3.5 w-3.5 text-[#ff8c37]" />
+                        <span className="text-xs font-bold text-[#ff8c37]">{stats.streak}</span>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-xs text-muted-foreground">Attendance</span>
+                        <span className="text-sm font-bold" style={{ color: pctColor }}>
+                          {stats.total !== 0 ? `${stats.percentage}%` : "-"}
+                        </span>
+                      </div>
                     </div>
 
                     <span className="text-xs text-muted-foreground hidden md:block">

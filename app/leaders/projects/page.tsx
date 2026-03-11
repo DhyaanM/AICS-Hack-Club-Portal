@@ -6,15 +6,24 @@ import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
-import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink, Trash2, Crown } from "lucide-react"
+import { FolderKanban, CheckCircle2, XCircle, MessageSquare, ExternalLink, Trash2, Crown, Plus, Check } from "lucide-react"
 import type { Project, ProjectStatus } from "@/lib/types"
 
 const TABS: { key: ProjectStatus | "all"; label: string; color: string }[] = [
@@ -32,16 +41,30 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "#ec3750",
 }
 
+const CATEGORIES = ["Web Development", "AI / ML", "Mobile App", "Cybersecurity", "Hardware / IoT", "Blockchain", "Game Dev", "Other"]
+
 function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 }
 
 export default function LeaderProjectsPage() {
   const { user } = useAuth()
-  const { projects, users, updateProjectStatus, deleteProject } = useData()
+  const { projects, users, addProject, updateProjectStatus, deleteProject } = useData()
   const [tab, setTab] = useState<ProjectStatus | "all">("all")
   const [selected, setSelected] = useState<Project | null>(null)
   const [comment, setComment] = useState("")
+
+  // New project creation state
+  const [createOpen, setCreateOpen] = useState(false)
+  const [newTitle, setNewTitle] = useState("")
+  const [newDesc, setNewDesc] = useState("")
+  const [newCategory, setNewCategory] = useState("")
+  const [newStatus, setNewStatus] = useState<ProjectStatus>("in-progress")
+  const [newType, setNewType] = useState<"solo" | "group">("solo")
+  const [newSelectedMembers, setNewSelectedMembers] = useState<string[]>([])
+  const [submitting, setSubmitting] = useState(false)
+
+  const allMembers = users.filter(u => u.email?.toLowerCase() !== process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase())
 
   const filtered = tab === "all" ? projects : projects.filter((p) => p.status === tab)
   const sorted = [...filtered].sort(
@@ -50,6 +73,37 @@ export default function LeaderProjectsPage() {
 
   function getMemberName(id: string) {
     return users.find((u) => u.id === id)?.name ?? id
+  }
+
+  async function handleLeaderCreate() {
+    if (!newTitle.trim() || !newDesc.trim() || !newCategory) {
+      toast.error("Please fill in all required fields.")
+      return
+    }
+    if (!user) return
+    setSubmitting(true)
+    try {
+      const memberIds = newType === "group" ? [user.id, ...newSelectedMembers] : [user.id]
+      await addProject({
+        title: newTitle.trim(),
+        description: newDesc.trim(),
+        category: newCategory,
+        status: newStatus,
+        type: newType,
+        createdBy: user.id,
+        memberIds,
+        isGroup: newType === "group",
+        links: [],
+        progressNotes: [],
+      })
+      toast.success("Project created!")
+      setNewTitle(""); setNewDesc(""); setNewCategory(""); setNewType("solo"); setNewSelectedMembers([]); setNewStatus("in-progress")
+      setCreateOpen(false)
+    } catch (err: any) {
+      toast.error("Failed: " + (err?.message ?? "Unknown error"))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   function handleApprove(p: Project) {
@@ -75,11 +129,103 @@ export default function LeaderProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Projects</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Review and manage member projects.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Projects</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review, manage, and create projects.
+          </p>
+        </div>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2 spring-press bg-[#a633d6] text-white hover:bg-[#9028be]">
+              <Plus className="h-4 w-4" /> New Project
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Project Title *</label>
+                <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="My Club Project" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Description *</label>
+                <Textarea rows={3} value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What is this project about?" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Category *</label>
+                <Select value={newCategory} onValueChange={setNewCategory}>
+                  <SelectTrigger><SelectValue placeholder="Pick a category…" /></SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Initial Status</label>
+                <div className="flex gap-2 flex-wrap">
+                  {(["proposed", "in-progress", "completed"] as ProjectStatus[]).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setNewStatus(s)}
+                      className={`flex-1 rounded-xl border py-2 text-xs font-semibold capitalize transition-all spring-press ${newStatus === s
+                        ? "text-white shadow-md"
+                        : "border-border text-muted-foreground hover:text-foreground"}`}
+                      style={newStatus === s ? { background: STATUS_COLORS[s] } : {}}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Type</label>
+                <div className="flex gap-2">
+                  {(["solo", "group"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setNewType(t)}
+                      className={`flex-1 rounded-xl border py-2.5 text-sm font-medium capitalize transition-all spring-press ${newType === t
+                        ? "border-[#a633d6] bg-[#a633d6]/10 text-[#a633d6]"
+                        : "border-border text-muted-foreground hover:border-[#a633d6]/40"}`}
+                    >
+                      {t === "solo" ? "👤 Solo" : "👥 Group"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {newType === "group" && allMembers.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Select Members</label>
+                  <div className="rounded-xl border border-border/50 bg-muted/20 p-2 max-h-36 overflow-y-auto space-y-1">
+                    {allMembers.map(m => {
+                      const isSelected = newSelectedMembers.includes(m.id)
+                      return (
+                        <div
+                          key={m.id}
+                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${isSelected ? "bg-[#a633d6]/10" : "hover:bg-muted/50"}`}
+                          onClick={() => {
+                            if (isSelected) setNewSelectedMembers(prev => prev.filter(id => id !== m.id))
+                            else setNewSelectedMembers(prev => [...prev, m.id])
+                          }}
+                        >
+                          <span className={`text-sm ${isSelected ? "font-semibold text-[#a633d6]" : "text-foreground"}`}>{m.name}</span>
+                          {isSelected && <Check className="h-4 w-4 text-[#a633d6]" />}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              <Button className="w-full bg-[#a633d6] text-white hover:bg-[#9028be] spring-press" onClick={handleLeaderCreate} disabled={submitting}>
+                {submitting ? "Creating..." : "Create Project"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Tabs */}

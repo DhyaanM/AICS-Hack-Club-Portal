@@ -48,16 +48,26 @@ export default function MemberReportsPage() {
   const [desc, setDesc] = useState("")
   const [category, setCategory] = useState("")
 
+  const [submitting, setSubmitting] = useState(false)
+
   async function handleSubmit() {
     if (!title.trim() || !desc.trim() || !category) {
       toast.error("Please fill in all fields.")
       return
     }
-    await addReport({ userId: user!.id, title: title.trim(), description: desc.trim(), category })
-    toast.success("Report submitted! Leaders have been notified.")
-    setTitle(""); setDesc(""); setCategory("")
-    setOpen(false)
+    setSubmitting(true)
+    try {
+      await addReport({ userId: user!.id, title: title.trim(), description: desc.trim(), category })
+      toast.success("Report submitted! Leaders have been notified.")
+      setTitle(""); setDesc(""); setCategory("")
+      setOpen(false)
+    } catch (err: any) {
+      toast.error("Failed to submit: " + (err?.message ?? "Unknown error"))
+    } finally {
+      setSubmitting(false)
+    }
   }
+
 
   return (
     <div className="space-y-6">
@@ -94,8 +104,8 @@ export default function MemberReportsPage() {
                 <label className="text-sm font-medium">Details *</label>
                 <Textarea rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Explain the problem in detail. When did it happen? What were you trying to do?" />
               </div>
-              <Button className="w-full gap-2 bg-[#ff8c37] text-white hover:bg-[#e07a28] spring-press" onClick={handleSubmit}>
-                <AlertTriangle className="h-4 w-4" /> Submit Report
+              <Button className="w-full gap-2 bg-[#ff8c37] text-white hover:bg-[#e07a28] spring-press" onClick={handleSubmit} disabled={submitting}>
+                <AlertTriangle className="h-4 w-4" /> {submitting ? "Submitting..." : "Submit Report"}
               </Button>
             </div>
           </DialogContent>

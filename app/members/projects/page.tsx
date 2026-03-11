@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { FolderKanban, Plus, ExternalLink, MessageSquare, Check } from "lucide-react"
+import { FolderKanban, Plus, ExternalLink, MessageSquare, Check, Globe } from "lucide-react"
 import type { ProjectStatus } from "@/lib/types"
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
@@ -41,10 +41,16 @@ function initials(name: string) {
 
 export default function MemberProjectsPage() {
   const { user } = useAuth()
-  const { projects, users, addProject, addProjectNote } = useData()
+  const { projects, users, kudos, addProject, addProjectNote, addKudo, removeKudo } = useData()
   if (!user) return null
 
   const myProjects = projects.filter((p) => p.memberIds.includes(user.id))
+  // Community: all non-rejected projects not belonging to me, sorted by date
+  const communityProjects = projects
+    .filter((p) => p.status !== "rejected")
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+
+  const [activeTab, setActiveTab] = useState<"mine" | "community">("mine")
   const [open, setOpen] = useState(false)
   const [noteProject, setNoteProject] = useState<string | null>(null)
   const [note, setNote] = useState("")
@@ -63,28 +69,49 @@ export default function MemberProjectsPage() {
     return users.find((u) => u.id === id)?.name ?? id
   }
 
+  function getKudoCount(projectId: string) {
+    return kudos.filter(k => k.projectId === projectId).length
+  }
+
+  function hasGivenKudo(projectId: string) {
+    return kudos.some(k => k.projectId === projectId && k.userId === user!.id)
+  }
+
+  async function handleKudo(projectId: string) {
+    if (hasGivenKudo(projectId)) {
+      await removeKudo(projectId, user!.id)
+    } else {
+      await addKudo(projectId, user!.id)
+    }
+  }
+
   async function handleCreate() {
     if (!title.trim() || !desc.trim() || !category) {
       toast.error("Please fill in all required fields.")
       return
     }
     setSubmitting(true)
-    await addProject({
-      title: title.trim(),
-      description: desc.trim(),
-      category,
-      status: "proposed",
-      type,
-      createdBy: user!.id,
-      memberIds: type === "group" ? [user!.id, ...selectedMembers] : [user!.id],
-      isGroup: type === "group",
-      links: [],
-      progressNotes: [],
-    })
-    setSubmitting(false)
-    toast.success("Project proposal submitted! A leader will review it soon.")
-    setTitle(""); setDesc(""); setCategory(""); setType("solo"); setSelectedMembers([])
-    setOpen(false)
+    try {
+      await addProject({
+        title: title.trim(),
+        description: desc.trim(),
+        category,
+        status: "proposed",
+        type,
+        createdBy: user!.id,
+        memberIds: type === "group" ? [user!.id, ...selectedMembers] : [user!.id],
+        isGroup: type === "group",
+        links: [],
+        progressNotes: [],
+      })
+      toast.success("Project proposal submitted! A leader will review it soon.")
+      setTitle(""); setDesc(""); setCategory(""); setType("solo"); setSelectedMembers([])
+      setOpen(false)
+    } catch (err: any) {
+      toast.error("Failed to submit: " + (err?.message ?? "Unknown error"))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   async function handleNote() {
@@ -99,8 +126,10 @@ export default function MemberProjectsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">My Projects</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{myProjects.length} project{myProjects.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-2xl font-bold text-foreground">Projects</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your proposals and the full club project gallery.
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -184,73 +213,158 @@ export default function MemberProjectsPage() {
         </Dialog>
       </div>
 
-      {myProjects.length === 0 ? (
-        <div className="py-16 text-center">
-          <FolderKanban className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <p className="mt-3 text-sm text-muted-foreground">No projects yet - submit a proposal to get started!</p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {myProjects.map((project) => {
-            const color = STATUS_COLORS[project.status]
-            return (
-              <Card key={project.id} className="spring-hover-sm overflow-hidden border-border/60 bg-card">
-                <div className="h-1" style={{ background: color }} />
-                <CardContent className="p-5">
-                  <div className="mb-3 flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-foreground">{project.title}</h3>
-                    <Badge
-                      variant="secondary"
-                      className="shrink-0 capitalize text-xs"
-                      style={{ background: color + "18", color }}
-                    >
-                      {project.status}
-                    </Badge>
-                  </div>
-                  <p className="mb-3 text-sm text-muted-foreground">{project.description}</p>
+      {/* Tab switcher */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setActiveTab("mine")}
+          className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all spring-press ${activeTab === "mine"
+            ? "bg-[#a633d6] text-white shadow-md"
+            : "border border-border bg-background text-muted-foreground hover:text-foreground"}`}
+        >
+          <FolderKanban className="h-3.5 w-3.5" /> My Projects ({myProjects.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("community")}
+          className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all spring-press ${activeTab === "community"
+            ? "bg-[#338eda] text-white shadow-md"
+            : "border border-border bg-background text-muted-foreground hover:text-foreground"}`}
+        >
+          <Globe className="h-3.5 w-3.5" /> Community ({communityProjects.length})
+        </button>
+      </div>
 
-                  {project.leaderComment && (
-                    <div className="mb-3 rounded-xl border border-border/50 bg-muted/30 p-3">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">Leader Feedback</p>
-                      <p className="text-xs text-foreground">{project.leaderComment}</p>
-                    </div>
-                  )}
+      {activeTab === "mine" && (
+        <>
+          {myProjects.length === 0 ? (
+            <div className="py-16 text-center">
+              <FolderKanban className="mx-auto h-12 w-12 text-muted-foreground/40" />
+              <p className="mt-3 text-sm text-muted-foreground">No projects yet - submit a proposal to get started!</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {myProjects.map((project) => {
+                const color = STATUS_COLORS[project.status]
+                return (
+                  <Card key={project.id} className="spring-hover-sm overflow-hidden border-border/60 bg-card">
+                    <div className="h-1" style={{ background: color }} />
+                    <CardContent className="p-5">
+                      <div className="mb-3 flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-foreground">{project.title}</h3>
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 capitalize text-xs"
+                          style={{ background: color + "18", color }}
+                        >
+                          {project.status}
+                        </Badge>
+                      </div>
+                      <p className="mb-3 text-sm text-muted-foreground">{project.description}</p>
 
-                  {project.progressNotes && project.progressNotes.length > 0 && (
-                    <div className="mb-3 space-y-1">
-                      <p className="text-xs font-semibold text-muted-foreground">Progress Notes</p>
-                      {project.progressNotes.map((n, i) => (
-                        <p key={i} className="text-xs text-muted-foreground">· {n}</p>
+                      {project.leaderComment && (
+                        <div className="mb-3 rounded-xl border border-border/50 bg-muted/30 p-3">
+                          <p className="text-xs font-semibold text-muted-foreground mb-1">Leader Feedback</p>
+                          <p className="text-xs text-foreground">{project.leaderComment}</p>
+                        </div>
+                      )}
+
+                      {project.progressNotes && project.progressNotes.length > 0 && (
+                        <div className="mb-3 space-y-1">
+                          <p className="text-xs font-semibold text-muted-foreground">Progress Notes</p>
+                          {project.progressNotes.map((n, i) => (
+                            <p key={i} className="text-xs text-muted-foreground">· {n}</p>
+                          ))}
+                        </div>
+                      )}
+
+                      {project.links?.map((link) => (
+                        <a key={link} href={link} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-[#338eda] hover:underline mb-2">
+                          <ExternalLink className="h-3 w-3" /> {link}
+                        </a>
                       ))}
-                    </div>
-                  )}
 
-                  {project.links?.map((link) => (
-                    <a key={link} href={link} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-[#338eda] hover:underline mb-2">
-                      <ExternalLink className="h-3 w-3" /> {link}
-                    </a>
-                  ))}
+                      {project.status === "in-progress" && (
+                        <Dialog open={noteProject === project.id} onOpenChange={(o) => setNoteProject(o ? project.id : null)}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-1.5 text-xs mt-1">
+                              <MessageSquare className="h-3.5 w-3.5" /> Add Progress Note
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-sm">
+                            <DialogHeader><DialogTitle>Add Progress Note</DialogTitle></DialogHeader>
+                            <Textarea rows={3} placeholder="What did you work on?" value={note} onChange={(e) => setNote(e.target.value)} />
+                            <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleNote}>Save Note</Button>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
 
-                  {project.status === "in-progress" && (
-                    <Dialog open={noteProject === project.id} onOpenChange={(o) => setNoteProject(o ? project.id : null)}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs mt-1">
-                          <MessageSquare className="h-3.5 w-3.5" /> Add Progress Note
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-sm">
-                        <DialogHeader><DialogTitle>Add Progress Note</DialogTitle></DialogHeader>
-                        <Textarea rows={3} placeholder="What did you work on?" value={note} onChange={(e) => setNote(e.target.value)} />
-                        <Button className="w-full bg-[#338eda] text-white hover:bg-[#2b78be]" onClick={handleNote}>Save Note</Button>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+      {activeTab === "community" && (
+        <>
+          {communityProjects.length === 0 ? (
+            <div className="py-16 text-center">
+              <Globe className="mx-auto h-12 w-12 text-muted-foreground/40" />
+              <p className="mt-3 text-sm text-muted-foreground">No community projects yet.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {communityProjects.map((project) => {
+                const color = STATUS_COLORS[project.status]
+                const kudoCount = getKudoCount(project.id)
+                const iKudoed = hasGivenKudo(project.id)
+                return (
+                  <Card key={project.id} className="overflow-hidden border-border/60 bg-card spring-hover-sm">
+                    <div className="h-1" style={{ background: color }} />
+                    <CardContent className="p-5">
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-foreground leading-tight">{project.title}</h3>
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 capitalize text-xs"
+                          style={{ background: color + "18", color }}
+                        >
+                          {project.status}
+                        </Badge>
+                      </div>
+                      <p className="mb-3 text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+
+                      <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-border/40">
+                        <div className="text-xs text-muted-foreground">
+                          {project.category} · {project.memberIds.slice(0, 2).map(getMemberName).join(", ")}
+                          {project.memberIds.length > 2 && ` +${project.memberIds.length - 2}`}
+                        </div>
+
+                        {project.status === "completed" ? (
+                          <button
+                            onClick={() => handleKudo(project.id)}
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all spring-press border ${iKudoed
+                              ? "border-[#33d6a6] bg-[#33d6a6]/15 text-[#33d6a6]"
+                              : "border-border text-muted-foreground hover:border-[#33d6a6] hover:text-[#33d6a6]"
+                              }`}
+                            title={iKudoed ? "Remove your kudo" : "Give this project a kudo!"}
+                          >
+                            🎉 {kudoCount > 0 ? kudoCount : ""} {iKudoed ? "Kudoed!" : "Kudos"}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50 italic">
+                            {project.status === "in-progress" ? "In Progress…" : "Pending"}
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

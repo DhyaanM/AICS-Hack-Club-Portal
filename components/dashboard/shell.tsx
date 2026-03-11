@@ -18,6 +18,7 @@ import {
   Menu,
   Clock,
   Crown,
+  Megaphone,
 } from "lucide-react"
 import { useState, type ReactNode } from "react"
 
@@ -35,6 +36,7 @@ const leaderNav: NavItem[] = [
   { href: "/leaders/leaves", label: "Leaves", icon: Clock, color: "#f1c40f" },
   { href: "/leaders/projects", label: "Projects", icon: FolderKanban, color: "#a633d6" },
   { href: "/leaders/reports", label: "Reports", icon: AlertTriangle, color: "#ff8c37" },
+  { href: "/leaders/announcements", label: "Announcements", icon: Megaphone, color: "#ff8c37" },
 ]
 
 const memberNav: NavItem[] = [

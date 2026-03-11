@@ -18,6 +18,8 @@ import type {
   ProjectStatus,
   LeaveStatus,
   ReportStatus,
+  Announcement,
+  ProjectKudo,
 } from "./types"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "./auth-context"
@@ -110,6 +112,26 @@ function mapReport(row: Record<string, unknown>): ProblemReport {
   }
 }
 
+function mapAnnouncement(row: Record<string, unknown>): Announcement {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    content: row.content as string,
+    createdBy: row.created_by as string,
+    pinned: row.pinned as boolean,
+    createdAt: row.created_at as string,
+  }
+}
+
+function mapKudo(row: Record<string, unknown>): ProjectKudo {
+  return {
+    id: row.id as string,
+    projectId: row.project_id as string,
+    userId: row.user_id as string,
+    createdAt: row.created_at as string,
+  }
+}
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 interface DataContextValue {
   users: User[]
@@ -117,6 +139,8 @@ interface DataContextValue {
   projects: Project[]
   leaveRequests: LeaveRequest[]
   reports: ProblemReport[]
+  announcements: Announcement[]
+  kudos: ProjectKudo[]
   isLoading: boolean
 
   addMember: (member: Omit<User, "id" | "role" | "joinDate">) => Promise<void>
@@ -143,6 +167,13 @@ interface DataContextValue {
   addReport: (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => Promise<void>
   updateReportStatus: (id: string, status: ReportStatus, response?: string) => Promise<void>
   deleteReport: (id: string) => Promise<void>
+
+  addAnnouncement: (ann: { title: string; content: string; pinned: boolean }) => Promise<void>
+  deleteAnnouncement: (id: string) => Promise<void>
+  togglePinAnnouncement: (id: string, pinned: boolean) => Promise<void>
+
+  addKudo: (projectId: string, userId: string) => Promise<void>
+  removeKudo: (projectId: string, userId: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({} as DataContextValue)
@@ -153,6 +184,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
   const [reports, setReports] = useState<ProblemReport[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [kudos, setKudos] = useState<ProjectKudo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
 
@@ -166,6 +199,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       { data: projectsData },
       { data: leaveData },
       { data: reportsData },
+      { data: announcementsData },
+      { data: kudosData },
     ] = await Promise.all([
       supabase.from("club_users").select("*"),
       supabase.from("meetings").select("*").order("date"),
@@ -173,6 +208,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.from("projects").select("*").order("updated_at", { ascending: false }),
       supabase.from("leave_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("problem_reports").select("*").order("created_at", { ascending: false }),
+      supabase.from("announcements").select("*").order("created_at", { ascending: false }),
+      supabase.from("project_kudos").select("*"),
     ])
 
     // Fetch signed URLs for avatars if any
@@ -202,6 +239,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setProjects((projectsData ?? []).map(mapProject))
     setLeaveRequests((leaveData ?? []).map(mapLeaveRequest))
     setReports((reportsData ?? []).map(mapReport))
+    setAnnouncements((announcementsData ?? []).map(mapAnnouncement))
+    setKudos((kudosData ?? []).map(mapKudo))
     setIsLoading(false)
   }
 
@@ -213,6 +252,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setProjects([])
       setLeaveRequests([])
       setReports([])
+      setAnnouncements([])
+      setKudos([])
       setIsLoading(false)
       return
     }
@@ -227,6 +268,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, loadAll),
       supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, loadAll),
       supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, loadAll),
+      supabase.channel("ann_changes").on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, loadAll),
+      supabase.channel("kudos_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, loadAll),
     ]
 
     channels.forEach((c) => c.subscribe())
@@ -350,7 +393,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ─── Projects ─────────────────────────────────────────────────────────────
   const addProject = useCallback(async (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => {
     const now = today()
-    await supabase.from("projects").insert({
+    const { error } = await supabase.from("projects").insert({
       id: `proj-${generateId()}`,
       title: project.title,
       description: project.description,
@@ -366,6 +409,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: now,
       updated_at: now,
     })
+
+    if (error) {
+      console.error("addProject error:", error)
+      throw error
+    }
 
     const memberName = users.find(u => u.id === project.createdBy)?.name || "A member"
     fetch("/api/notify", {
@@ -401,7 +449,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // ─── Leave Requests ───────────────────────────────────────────────────────
   const addLeaveRequest = useCallback(async (req: Omit<LeaveRequest, "id" | "createdAt" | "status">) => {
-    await supabase.from("leave_requests").insert({
+    const { error } = await supabase.from("leave_requests").insert({
       id: `leave-${generateId()}`,
       user_id: req.userId,
       meeting_id: req.meetingId,
@@ -409,6 +457,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       status: "pending",
       created_at: today(),
     })
+
+    if (error) {
+      console.error("addLeaveRequest error:", error)
+      throw error
+    }
 
     const memberName = users.find((u) => u.id === req.userId)?.name || "A member"
     const meetingName = meetings.find((m) => m.id === req.meetingId)?.title || req.meetingId
@@ -430,7 +483,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ─── Reports ──────────────────────────────────────────────────────────────
   const addReport = useCallback(async (report: Omit<ProblemReport, "id" | "createdAt" | "updatedAt" | "status">) => {
     const now = today()
-    await supabase.from("problem_reports").insert({
+    const { error } = await supabase.from("problem_reports").insert({
       id: `report-${generateId()}`,
       user_id: report.userId,
       title: report.title,
@@ -440,6 +493,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: now,
       updated_at: now,
     })
+
+    if (error) {
+      console.error("addReport error:", error)
+      throw error
+    }
 
     const memberName = users.find((u) => u.id === report.userId)?.name || "A member"
     fetch("/api/notify", {
@@ -467,6 +525,60 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await supabase.from("problem_reports").delete().eq("id", id)
   }, [user])
 
+  // ─── Announcements ────────────────────────────────────────────────────────
+  const addAnnouncement = useCallback(async (ann: { title: string; content: string; pinned: boolean }) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can post announcements")
+      return
+    }
+    const { error } = await supabase.from("announcements").insert({
+      id: `ann-${generateId()}`,
+      title: ann.title,
+      content: ann.content,
+      pinned: ann.pinned,
+      created_by: user.id,
+      created_at: today(),
+    })
+    if (error) {
+      console.error("addAnnouncement error:", error)
+      throw error
+    }
+  }, [user])
+
+  const deleteAnnouncement = useCallback(async (id: string) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can delete announcements")
+      return
+    }
+    await supabase.from("announcements").delete().eq("id", id)
+  }, [user])
+
+  const togglePinAnnouncement = useCallback(async (id: string, pinned: boolean) => {
+    if (user?.role !== "leader") {
+      console.error("Unauthorized: only leaders can pin announcements")
+      return
+    }
+    await supabase.from("announcements").update({ pinned }).eq("id", id)
+  }, [user])
+
+  // ─── Kudos ────────────────────────────────────────────────────────────────
+  const addKudo = useCallback(async (projectId: string, userId: string) => {
+    const { error } = await supabase.from("project_kudos").insert({
+      id: `kudo-${generateId()}`,
+      project_id: projectId,
+      user_id: userId,
+      created_at: today(),
+    })
+    if (error) console.error("addKudo error:", error)
+  }, [])
+
+  const removeKudo = useCallback(async (projectId: string, userId: string) => {
+    await supabase.from("project_kudos")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("user_id", userId)
+  }, [])
+
   return (
     <DataContext.Provider
       value={{
@@ -475,6 +587,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         projects,
         leaveRequests,
         reports,
+        announcements,
+        kudos,
         isLoading,
         addMember,
         removeMember,
@@ -496,6 +610,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
         addReport,
         updateReportStatus,
         deleteReport,
+        addAnnouncement,
+        deleteAnnouncement,
+        togglePinAnnouncement,
+        addKudo,
+        removeKudo,
       }}
     >
       {children}

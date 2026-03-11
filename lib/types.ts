@@ -73,3 +73,19 @@ export interface ProblemReport {
   createdAt: string
   updatedAt: string
 }
+
+export interface Announcement {
+  id: string
+  title: string
+  content: string
+  createdBy: string
+  pinned: boolean
+  createdAt: string
+}
+
+export interface ProjectKudo {
+  id: string
+  projectId: string
+  userId: string
+  createdAt: string
+}

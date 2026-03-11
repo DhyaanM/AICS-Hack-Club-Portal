@@ -48,17 +48,23 @@ export default function LeavePage() {
     if (!meetingId) { toast.error("Please select a meeting."); return }
     if (!reason.trim()) { toast.error("Please provide a reason."); return }
     setSubmitting(true)
-    await addLeaveRequest({
-      userId: user!.id,
-      meetingId: meetingId,
-      reason: reason.trim(),
-    })
-    setSubmitting(false)
-    toast.success("Leave request submitted!")
-    setMeetingId("")
-    setReason("")
-    setOpen(false)
+    try {
+      await addLeaveRequest({
+        userId: user!.id,
+        meetingId: meetingId,
+        reason: reason.trim(),
+      })
+      toast.success("Leave request submitted!")
+      setMeetingId("")
+      setReason("")
+      setOpen(false)
+    } catch (err: any) {
+      toast.error("Failed to submit: " + (err?.message ?? "Unknown error"))
+    } finally {
+      setSubmitting(false)
+    }
   }
+
 
   return (
     <div className="space-y-6">

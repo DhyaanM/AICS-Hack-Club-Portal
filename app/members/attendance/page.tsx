@@ -6,6 +6,7 @@ import { useData } from "@/lib/data-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarCheck, TrendingUp } from "lucide-react"
+import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 
 const STATUS_COLORS: Record<string, string> = {
   present: "#33d6a6",
@@ -21,25 +22,13 @@ export default function MemberAttendancePage() {
 
   if (!user) return null
 
+  const { total, attended, percentage: pct } = calculateAttendanceStats(user.id, meetings)
+  const streak = calculateStreak(user.id, meetings)
+
   const sorted = [...meetings].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 
-  let total = 0, attended = 0, streak = 0
-  for (const m of sorted) {
-    const rec = m.attendance.find((a) => a.userId === user.id)
-    if (rec) {
-      total++
-      if (rec.status === "present" || rec.status === "late") attended++
-    }
-  }
-  for (const m of sorted) {
-    const rec = m.attendance.find((a) => a.userId === user.id)
-    if (rec && (rec.status === "present" || rec.status === "late")) streak++
-    else break
-  }
-
-  const pct = total === 0 ? 0 : Math.round((attended / total) * 100)
   const circumference = 2 * Math.PI * 54
   const offset = circumference - (pct / 100) * circumference
   const ringColor = pct >= 80 ? "#33d6a6" : pct >= 60 ? "#f1c40f" : "#ec3750"
