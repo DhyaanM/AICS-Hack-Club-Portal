@@ -22,8 +22,22 @@ export default async function proxy(request: NextRequest) {
                 return cookieStore.getAll()
             },
             setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+                // Set cookies on the incoming request so the supabase client session is up to date
+                cookiesToSet.forEach(({ name, value }) =>
+                    request.cookies.set(name, value)
+                )
+                
+                // Refresh the response object with the updated request before setting outgoing cookies
+                supabaseResponse = NextResponse.next({ request })
+
+                // Set cookies on the outgoing response with security flags
                 cookiesToSet.forEach(({ name, value, options }) =>
-                    supabaseResponse.cookies.set(name, value, options as any)
+                    supabaseResponse.cookies.set(name, value, {
+                        ...(options as object),
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'lax',
+                    })
                 )
             },
         },
