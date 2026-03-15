@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     "The official portal for AICS Hack Club - build, learn, and hack together.",
   manifest: "/manifest.json",
   icons: {
-    icon: "https://assets.hackclub.com/icon-square.svg",
-    apple: "https://assets.hackclub.com/icon-square.svg",
+    icon: "/aics-icon.png",
+    apple: "/aics-icon.png",
   },
   appleWebApp: {
     capable: true,

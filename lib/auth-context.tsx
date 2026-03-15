@@ -115,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function login(email: string, password: string): Promise<{ error?: string }> {
-    console.log("Auth Context: Attempting login for", email.trim())
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password: password,
@@ -130,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error.message }
     }
 
-    console.log("Auth Context: Login successful for", data.user?.email)
     return {}
   }
 
