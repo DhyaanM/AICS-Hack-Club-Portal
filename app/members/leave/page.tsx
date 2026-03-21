@@ -68,7 +68,7 @@ export default function LeavePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-pop-in">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-slide-right-fade">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Leave Requests</h1>
           <p className="mt-1 text-sm text-muted-foreground">Log absence in advance for upcoming meetings.</p>
@@ -125,7 +125,7 @@ export default function LeavePage() {
       </div>
 
       {/* My requests */}
-      <Card className="border-border/60 bg-card animate-pop-in stagger-1">
+      <Card className="border-border/60 bg-card animate-slide-right-fade stagger-1">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <CalendarDays className="h-4 w-4" style={{ color: "#f1c40f" }} />
@@ -144,7 +144,7 @@ export default function LeavePage() {
                 const meeting = meetings.find((m) => m.id === leave.meetingId)
                 const staggerCls = `stagger-${Math.min(idx + 2, 8)}`
                 return (
-                  <div key={leave.id} className={`animate-pop-in ${staggerCls} flex items-start justify-between gap-4 px-5 py-4 spring-hover-sm`}>
+                  <div key={leave.id} className={`animate-slide-right-fade ${staggerCls} flex items-start justify-between gap-4 px-5 py-4 spring-hover-sm`}>
                     <div className="flex items-start gap-3">
                       <div
                         className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"

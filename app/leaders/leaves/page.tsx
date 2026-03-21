@@ -23,7 +23,7 @@ export default function LeaderLeavesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="animate-pop-in">
+            <div className="animate-slide-right-fade">
                 <h1 className="text-2xl font-bold text-foreground">Leave Requests</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                     Review and manage member absence notifications.
@@ -31,7 +31,7 @@ export default function LeaderLeavesPage() {
             </div>
 
             {/* Pending Requests */}
-            <Card className="border-border/60 bg-card animate-pop-in stagger-1">
+            <Card className="border-border/60 bg-card animate-slide-right-fade stagger-1">
                 <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
                         <Clock className="h-4 w-4 text-[#f1c40f]" />
@@ -52,7 +52,7 @@ export default function LeaderLeavesPage() {
                         pendingLeaves.map((leave, idx) => (
                             <div
                                 key={leave.id}
-                                className={`animate-pop-in stagger-${Math.min(idx + 2, 8)} flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04] spring-hover-sm`}
+                                className={`animate-slide-right-fade stagger-${Math.min(idx + 2, 8)} flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04] spring-hover-sm`}
                             >
                                 <div className="flex items-start gap-3">
                                     <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f1c40f]/10 text-[#f1c40f]">
@@ -92,7 +92,7 @@ export default function LeaderLeavesPage() {
             </Card>
 
             {/* History */}
-            <Card className="border-border/60 bg-card animate-pop-in stagger-2">
+            <Card className="border-border/60 bg-card animate-slide-right-fade stagger-2">
                 <CardHeader>
                     <CardTitle className="text-base">Recent History</CardTitle>
                 </CardHeader>
@@ -105,7 +105,7 @@ export default function LeaderLeavesPage() {
                         historicalLeaves.slice(0, 5).map((leave, idx) => (
                             <div
                                 key={leave.id}
-                                className={`animate-pop-in stagger-${Math.min(idx + 3, 8)} flex items-center justify-between rounded-lg border border-border/40 p-3 opacity-60`}
+                                className={`animate-slide-right-fade stagger-${Math.min(idx + 3, 8)} flex items-center justify-between rounded-lg border border-border/40 p-3 opacity-60`}
                             >
                                 <div>
                                     <p className="text-sm font-medium text-foreground">

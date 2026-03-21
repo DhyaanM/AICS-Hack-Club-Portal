@@ -169,7 +169,7 @@ export default function MemberDashboard() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
-        <div className="animate-pop-in stagger-1 h-full">
+        <div className="animate-slide-up-fade stagger-1 h-full">
           <StatCard
             label="Attendance"
             value={`${attendancePct}%`}
@@ -184,7 +184,7 @@ export default function MemberDashboard() {
             subtitle={`${attended}/${totalMeetings} meetings`}
           />
         </div>
-        <Link href="/members/streaks" className="block spring-hover-sm animate-pop-in stagger-2 h-full">
+        <Link href="/members/streaks" className="block spring-hover-sm animate-slide-up-fade stagger-2 h-full">
           <StatCard
             label="Streak"
             value={streak}
@@ -193,7 +193,7 @@ export default function MemberDashboard() {
             subtitle="consecutive meetings"
           />
         </Link>
-        <div className="animate-pop-in stagger-3 h-full">
+        <div className="animate-slide-up-fade stagger-3 h-full">
           <StatCard
             label="Active Projects"
             value={activeProjects.length}
@@ -201,7 +201,7 @@ export default function MemberDashboard() {
             color="#338eda"
           />
         </div>
-        <div className="animate-pop-in stagger-4 h-full">
+        <div className="animate-slide-up-fade stagger-4 h-full">
           <StatCard
             label="Pending Leaves"
             value={pendingLeaves.length}
@@ -274,7 +274,7 @@ export default function MemberDashboard() {
                   <Link
                     key={entry.user.id}
                     href={`/directory/${entry.user.id}`}
-                    className={`animate-pop-in ${staggerCls} flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:scale-[1.015] active:scale-[0.99] ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30" : "border border-border/40 hover:bg-muted/20"}`}
+                    className={`animate-slide-up-fade ${staggerCls} flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:scale-[1.015] active:scale-[0.99] ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30" : "border border-border/40 hover:bg-muted/20"}`}
                   >
                     <span className="text-base w-6 text-center select-none">
                       {STREAK_RANK_EMOJIS[idx] ?? `${idx + 1}.`}

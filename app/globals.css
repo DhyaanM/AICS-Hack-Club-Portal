@@ -302,6 +302,33 @@
   animation: pop-in 450ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* Slide Up Fade */
+@keyframes slide-up-fade {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up-fade {
+  animation: slide-up-fade 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Slide Right Fade */
+@keyframes slide-right-fade {
+  0% { opacity: 0; transform: translateX(-24px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-right-fade {
+  animation: slide-right-fade 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Scale Up Fade (Less bouncy than pop-in) */
+@keyframes scale-up-fade {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-scale-up-fade {
+  animation: scale-up-fade 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
 /* Stagger helpers — apply to children in lists */
 .stagger-1 { animation-delay: 40ms; }
 .stagger-2 { animation-delay: 80ms; }

@@ -91,19 +91,19 @@ export default function LeadersDashboard() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-stretch">
-        <div className="animate-pop-in stagger-1 h-full">
+        <div className="animate-slide-up-fade stagger-1 h-full">
           <StatCard label="Total Members" value={members.length} icon={<Users className="h-5 w-5" />} color="#338eda" />
         </div>
-        <div className="animate-pop-in stagger-2 h-full">
+        <div className="animate-slide-up-fade stagger-2 h-full">
           <StatCard label="Meetings Held" value={heldMeetings.length} icon={<CalendarCheck className="h-5 w-5" />} color="#33d6a6" />
         </div>
-        <div className="animate-pop-in stagger-3 h-full">
+        <div className="animate-slide-up-fade stagger-3 h-full">
           <StatCard label="Pending Proposals" value={pendingProjects.length} icon={<FolderKanban className="h-5 w-5" />} color="#f1c40f" subtitle="Proposals" />
         </div>
-        <div className="animate-pop-in stagger-4 h-full">
+        <div className="animate-slide-up-fade stagger-4 h-full">
           <StatCard label="Pending Leaves" value={pendingLeaves.length} icon={<CalendarClock className="h-5 w-5" />} color="#a633d6" subtitle="Review needed" />
         </div>
-        <div className="animate-pop-in stagger-5 h-full">
+        <div className="animate-slide-up-fade stagger-5 h-full">
           <StatCard label="Open Reports" value={openReports.length} icon={<AlertTriangle className="h-5 w-5" />} color="#ec3750" subtitle={openReports.length > 0 ? "Needs attention" : "All clear"} />
         </div>
       </div>

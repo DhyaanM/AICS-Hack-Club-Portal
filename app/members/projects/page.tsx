@@ -131,7 +131,7 @@ export default function MemberProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-pop-in">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-scale-up-fade">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Projects</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -253,7 +253,7 @@ export default function MemberProjectsPage() {
                 const color = STATUS_COLORS[project.status]
                 const staggerCls = `stagger-${Math.min(idx + 1, 8)}`
                 return (
-                  <Card key={project.id} className={`spring-hover-sm overflow-hidden border-border/60 bg-card animate-pop-in ${staggerCls}`}>
+                  <Card key={project.id} className={`spring-hover-sm overflow-hidden border-border/60 bg-card animate-scale-up-fade ${staggerCls}`}>
                     <div className="h-1" style={{ background: color }} />
                     <CardContent className="p-5">
                       <div className="mb-3 flex items-start justify-between gap-2">
@@ -329,7 +329,7 @@ export default function MemberProjectsPage() {
                 const iKudoed = hasGivenKudo(project.id)
                 const staggerCls = `stagger-${Math.min(idx + 1, 8)}`
                 return (
-                  <Card key={project.id} className={`overflow-hidden border-border/60 bg-card spring-hover-sm animate-pop-in ${staggerCls}`}>
+                  <Card key={project.id} className={`overflow-hidden border-border/60 bg-card spring-hover-sm animate-scale-up-fade ${staggerCls}`}>
                     <div className="h-1" style={{ background: color }} />
                     <CardContent className="p-5">
                       <div className="mb-2 flex items-start justify-between gap-2">

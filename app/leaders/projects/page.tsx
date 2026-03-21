@@ -151,7 +151,7 @@ export default function LeaderProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-pop-in">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-scale-up-fade">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Projects</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -281,7 +281,7 @@ export default function LeaderProjectsPage() {
             return (
               <div
                 key={project.id}
-                className={`spring-hover cursor-pointer overflow-hidden rounded-2xl border border-border/50 bg-card animate-pop-in ${staggerCls}`}
+                className={`spring-hover cursor-pointer overflow-hidden rounded-2xl border border-border/50 bg-card animate-scale-up-fade ${staggerCls}`}
                 onClick={() => { setSelected(project); setComment(project.leaderComment ?? "") }}
               >
                 <div className="h-1.5" style={{ background: color }} />
