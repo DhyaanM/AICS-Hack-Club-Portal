@@ -112,11 +112,10 @@ export default function MemberDashboard() {
   const eligibleMembers = users.filter(u => u.email?.toLowerCase() !== supervisorEmail)
 
   // Priority name order
-  const PRIORITY_NAMES = ["rohan singh", "kota", "pranesh", "daksh"]
+  const PRIORITY_NAMES = ["dhyaan", "rohan singh", "kota", "pranesh", "daksh"]
 
   function getPriorityIndex(entry: { user: { email?: string; name: string } }) {
     const nameLower = entry.user.name.toLowerCase()
-    if (nameLower.includes("dhyaan")) return -1
     const idx = PRIORITY_NAMES.findIndex(p => nameLower.includes(p))
     return idx === -1 ? PRIORITY_NAMES.length : idx
   }
@@ -124,31 +123,24 @@ export default function MemberDashboard() {
   const rawEntries = eligibleMembers.map(u => ({
     user: u,
     streak: calculateStreak(u.id, meetings),
-    isPinned: u.name.toLowerCase().includes("dhyaan"),
     priority: getPriorityIndex({ user: u })
   }))
 
   rawEntries.sort((a, b) => {
-    if (a.isPinned && !b.isPinned) return -1
-    if (!a.isPinned && b.isPinned) return 1
     if (b.streak !== a.streak) return b.streak - a.streak
     return a.priority - b.priority
   })
 
-  let rankCounter = 0
+  let currentRank = 0
   const leaderboardFull: any[] = []
-  for (let i = 0; i < rawEntries.length; i++) {
-    const entry = rawEntries[i]
-    if (entry.isPinned) {
-        leaderboardFull.push({ ...entry, rank: 0 })
-        rankCounter = 1
-    } else {
-        const prevNonPinned = leaderboardFull.filter(e => !e.isPinned).slice(-1)[0]
-        if (prevNonPinned && prevNonPinned.streak === entry.streak) {
-            leaderboardFull.push({ ...entry, rank: prevNonPinned.rank })
+  if (rawEntries.length > 0) {
+    leaderboardFull.push({ ...rawEntries[0], rank: 0 })
+    for (let i = 1; i < rawEntries.length; i++) {
+        if (rawEntries[i].streak === rawEntries[i-1].streak) {
+            leaderboardFull.push({ ...rawEntries[i], rank: currentRank })
         } else {
-            leaderboardFull.push({ ...entry, rank: rankCounter })
-            rankCounter++
+            currentRank++
+            leaderboardFull.push({ ...rawEntries[i], rank: currentRank })
         }
     }
   }

@@ -18,7 +18,6 @@ interface LeaderboardEntry {
     user: { id: string; name: string; email?: string; avatar?: string; role?: string }
     streak: number
     rank: number   // 0-based tied rank
-    isPinned: boolean
 }
 
 export default function MemberStreaksPage() {
@@ -28,11 +27,10 @@ export default function MemberStreaksPage() {
     if (!user) return null
 
     const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
-    const PRIORITY_NAMES = ["rohan singh", "kota", "pranesh", "daksh"]
+    const PRIORITY_NAMES = ["dhyaan", "rohan singh", "kota", "pranesh", "daksh"]
 
     function getPriorityIndex(entry: { user: { email?: string; name: string } }) {
         const nameLower = entry.user.name.toLowerCase()
-        if (nameLower.includes("dhyaan")) return -1
         const idx = PRIORITY_NAMES.findIndex(p => nameLower.includes(p))
         return idx === -1 ? PRIORITY_NAMES.length : idx
     }
@@ -42,32 +40,25 @@ export default function MemberStreaksPage() {
     const rawEntries = eligibleMembers.map(u => ({
         user: u,
         streak: calculateStreak(u.id, meetings),
-        isPinned: u.name.toLowerCase().includes("dhyaan"),
         priority: getPriorityIndex({ user: u })
     }))
 
     rawEntries.sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1
-        if (!a.isPinned && b.isPinned) return 1
         if (b.streak !== a.streak) return b.streak - a.streak
         return a.priority - b.priority
     })
 
     const leaderboard: LeaderboardEntry[] = []
-    let rankCounter = 0
+    let currentRank = 0
 
-    for (let i = 0; i < rawEntries.length; i++) {
-        const entry = rawEntries[i]
-        if (entry.isPinned) {
-            leaderboard.push({ ...entry, rank: 0 })
-            rankCounter = 1
-        } else {
-            const prevNonPinned = leaderboard.filter(e => !e.isPinned).slice(-1)[0]
-            if (prevNonPinned && prevNonPinned.streak === entry.streak) {
-                leaderboard.push({ ...entry, rank: prevNonPinned.rank })
+    if (rawEntries.length > 0) {
+        leaderboard.push({ ...rawEntries[0], rank: 0 })
+        for (let i = 1; i < rawEntries.length; i++) {
+            if (rawEntries[i].streak === rawEntries[i-1].streak) {
+                leaderboard.push({ ...rawEntries[i], rank: currentRank })
             } else {
-                leaderboard.push({ ...entry, rank: rankCounter })
-                rankCounter++
+                currentRank++
+                leaderboard.push({ ...rawEntries[i], rank: currentRank })
             }
         }
     }
