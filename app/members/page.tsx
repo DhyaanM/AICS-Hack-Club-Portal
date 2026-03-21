@@ -151,22 +151,24 @@ export default function MemberDashboard() {
 
       {/* Stats */}
       <div
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-8 duration-700"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
-        <StatCard
-          label="Attendance"
-          value={`${attendancePct}%`}
-          icon={<CalendarCheck className="h-5 w-5" />}
-          color={
-            attendancePct >= 80
-              ? "#33d6a6"
-              : attendancePct >= 60
-                ? "#f1c40f"
-                : "#ec3750"
-          }
-          subtitle={`${attended}/${totalMeetings} meetings`}
-        />
-        <Link href="/members/streaks" className="block transition-transform hover:scale-105">
+        <div className="animate-pop-in stagger-1">
+          <StatCard
+            label="Attendance"
+            value={`${attendancePct}%`}
+            icon={<CalendarCheck className="h-5 w-5" />}
+            color={
+              attendancePct >= 80
+                ? "#33d6a6"
+                : attendancePct >= 60
+                  ? "#f1c40f"
+                  : "#ec3750"
+            }
+            subtitle={`${attended}/${totalMeetings} meetings`}
+          />
+        </div>
+        <Link href="/members/streaks" className="block spring-hover-sm animate-pop-in stagger-2">
           <StatCard
             label="Streak"
             value={streak}
@@ -175,18 +177,22 @@ export default function MemberDashboard() {
             subtitle="consecutive meetings"
           />
         </Link>
-        <StatCard
-          label="Active Projects"
-          value={activeProjects.length}
-          icon={<FolderKanban className="h-5 w-5" />}
-          color="#338eda"
-        />
-        <StatCard
-          label="Pending Leaves"
-          value={pendingLeaves.length}
-          icon={<Clock className="h-5 w-5" />}
-          color="#a633d6"
-        />
+        <div className="animate-pop-in stagger-3">
+          <StatCard
+            label="Active Projects"
+            value={activeProjects.length}
+            icon={<FolderKanban className="h-5 w-5" />}
+            color="#338eda"
+          />
+        </div>
+        <div className="animate-pop-in stagger-4">
+          <StatCard
+            label="Pending Leaves"
+            value={pendingLeaves.length}
+            icon={<Clock className="h-5 w-5" />}
+            color="#a633d6"
+          />
+        </div>
       </div>
 
       <div
@@ -247,10 +253,12 @@ export default function MemberDashboard() {
             ) : (
               leaderboard.map((entry, idx) => {
                 const isMe = entry.user.id === user.id
+                const staggerCls = `stagger-${Math.min(idx + 1, 8)}`
                 return (
-                  <div
+                  <Link
                     key={entry.user.id}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30" : "border border-border/40"}`}
+                    href={`/directory/${entry.user.id}`}
+                    className={`animate-pop-in ${staggerCls} flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:scale-[1.015] active:scale-[0.99] ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30" : "border border-border/40 hover:bg-muted/20"}`}
                   >
                     <span className="text-base w-6 text-center select-none">
                       {STREAK_RANK_EMOJIS[idx] ?? `${idx + 1}.`}
@@ -261,13 +269,22 @@ export default function MemberDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Flame className="h-4 w-4 text-[#ff8c37]" />
+                      <Flame className="h-4 w-4 text-[#ff8c37] hover:animate-shake" />
                       <span className="text-sm font-bold text-[#ff8c37]">{entry.streak}</span>
                     </div>
-                  </div>
+                  </Link>
                 )
               })
             )}
+            <Link
+              href="/members/streaks"
+              className="mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-border/50 py-2 text-xs font-medium text-muted-foreground hover:text-[#ff8c37] hover:border-[#ff8c37]/40 transition-all hover:bg-[#ff8c37]/5 spring-press"
+            >
+              View full leaderboard
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </CardContent>
         </Card>
       </div>

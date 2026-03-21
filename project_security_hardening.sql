@@ -12,7 +12,10 @@ CREATE TABLE IF NOT EXISTS public.project_invitations (
 ALTER TABLE public.project_invitations ENABLE ROW LEVEL SECURITY;
 
 -- 2. Define Project Invitation Policies
--- Members can see invitations they sent or received
+DROP POLICY IF EXISTS "invitations_select" ON public.project_invitations;
+DROP POLICY IF EXISTS "invitations_insert" ON public.project_invitations;
+DROP POLICY IF EXISTS "invitations_update" ON public.project_invitations;
+
 CREATE POLICY "invitations_select" ON public.project_invitations
   FOR SELECT TO authenticated
   USING (
@@ -23,7 +26,6 @@ CREATE POLICY "invitations_select" ON public.project_invitations
     )
   );
 
--- Members can insert invitations for projects they created
 CREATE POLICY "invitations_insert" ON public.project_invitations
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -34,7 +36,6 @@ CREATE POLICY "invitations_insert" ON public.project_invitations
     )
   );
 
--- Invitee can update status (accept/decline)
 CREATE POLICY "invitations_update" ON public.project_invitations
   FOR UPDATE TO authenticated
   USING (
@@ -45,7 +46,7 @@ CREATE POLICY "invitations_update" ON public.project_invitations
 CREATE OR REPLACE FUNCTION public.accept_project_invitation(invitation_uuid UUID)
 RETURNS void
 LANGUAGE plpgsql
-SECURITY DEFINER -- Runs with elevated privileges to update projects table
+SECURITY DEFINER 
 SET search_path = public
 AS $$
 DECLARE
@@ -81,7 +82,6 @@ END;
 $$;
 
 -- 4. Harden Projects Table RLS
--- Drop existing insert/update policies to replace them
 DROP POLICY IF EXISTS "Member Submit Projects" ON public.projects;
 DROP POLICY IF EXISTS "projects_insert" ON public.projects;
 DROP POLICY IF EXISTS "Member Update Own Project" ON public.projects;
@@ -89,7 +89,6 @@ DROP POLICY IF EXISTS "projects_update" ON public.projects;
 DROP POLICY IF EXISTS "projects_insert_hardened" ON public.projects;
 DROP POLICY IF EXISTS "projects_update_hardened" ON public.projects;
 
--- Strict Insert: created_by MUST match the authenticated user's ID
 CREATE POLICY "projects_insert_hardened" ON public.projects
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -97,7 +96,6 @@ CREATE POLICY "projects_insert_hardened" ON public.projects
     created_by = (SELECT id::text FROM public.club_users WHERE email ILIKE (auth.jwt() ->> 'email'))
   );
 
--- Strict Update: Leaders, Owners, or existing members can update details
 CREATE POLICY "projects_update_hardened" ON public.projects
   FOR UPDATE TO authenticated
   USING (

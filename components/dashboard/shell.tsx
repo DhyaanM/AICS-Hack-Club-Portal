@@ -154,11 +154,16 @@ export function DashboardShell({
       {/* User section */}
       <div className="border-t border-sidebar-border p-4">
         {user && (
-          <div className="mb-3 flex items-center gap-3">
-            <div className="relative group/user">
+          <Link
+            href={`/directory/${user.id}`}
+            onClick={() => setSheetOpen(false)}
+            className="mb-3 flex items-center gap-3 rounded-xl p-2 -mx-2 spring-press transition-colors hover:bg-sidebar-accent group/profile"
+            title="View your portfolio"
+          >
+            <div className="relative shrink-0">
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-xl overflow-hidden ring-2 ring-border/20 transition-all hover:ring-[#ec3750]/40"
-                style={{ background: roleGradient[role], width: '40px', height: '40px' }}
+                className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white shadow-xl overflow-hidden ring-2 ring-border/20 transition-all group-hover/profile:ring-[#ff8c37]/50 animate-profile-ping"
+                style={{ background: roleGradient[role] }}
               >
                 {(() => {
                   const viewerEmail = user.email?.toLowerCase()
@@ -177,27 +182,23 @@ export function DashboardShell({
                 })()}
               </div>
               {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(user.email?.toLowerCase() || "") && (
-                <div className="absolute -right-1 -top-1.5 rotate-[25deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-110">
+                <div className="absolute -right-1 -top-1.5 rotate-[25deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover/profile:scale-125">
                   <Crown className="h-4 w-4 fill-yellow-400 text-yellow-600" />
                 </div>
               )}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-semibold text-sidebar-foreground">
+              <p className="truncate text-sm font-semibold text-sidebar-foreground group-hover/profile:text-[#ff8c37] transition-colors">
                 {user.name || user.email.split("@")[0]}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-xs text-muted-foreground group-hover/profile:text-[#ff8c37]/70 transition-colors">
                 {(() => {
                   const email = user.email?.toLowerCase()
                   const isSupervisor = email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
 
-                  // If Supervisor, always show standard title
                   if (isSupervisor) return "Teacher Supervisor"
-
-                  // If has custom title, show it
                   if (user.title) return user.title
 
-                  // Role-based fallbacks
                   const founderEmails = (process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",")
                   const cofounderEmails = (process.env.NEXT_PUBLIC_COFOUNDER_EMAILS || "").toLowerCase().split(",")
 
@@ -208,7 +209,11 @@ export function DashboardShell({
                 })()}
               </p>
             </div>
-          </div>
+            {/* Subtle arrow hint */}
+            <svg className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover/profile:text-[#ff8c37]/60 transition-all group-hover/profile:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         )}
         <Button
           variant="ghost"

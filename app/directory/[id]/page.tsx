@@ -61,20 +61,20 @@ export default function DirectoryProfilePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pop-in">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Member Profile</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Public portfolio and project showcase for {profileUser.name}.
                     </p>
                 </div>
-                <Link href="/members/streaks" className="inline-flex items-center gap-2 text-sm font-medium text-[#338eda] hover:underline">
+                <Link href="/members/streaks" className="inline-flex items-center gap-2 text-sm font-medium text-[#338eda] hover:text-[#2b78be] transition-colors spring-press">
                     <ArrowLeft className="h-4 w-4" /> Back to Leaderboard
                 </Link>
             </div>
 
             {/* Profile Header */}
-            <Card className="border-border/60 bg-card overflow-hidden">
+            <Card className="border-border/60 bg-card overflow-hidden animate-pop-in stagger-1">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg">
                         <UserCircle className="h-5 w-5 text-[#338eda]" />
@@ -85,9 +85,9 @@ export default function DirectoryProfilePage() {
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
 
                         {/* Avatar */}
-                        <div className="relative shrink-0">
+                        <div className="relative shrink-0 animate-pop-in stagger-2">
                             <div
-                                className="flex h-32 w-32 items-center justify-center rounded-3xl border border-border bg-muted text-4xl font-black text-white shadow-sm overflow-hidden"
+                                className="flex h-32 w-32 items-center justify-center rounded-3xl border border-border bg-muted text-4xl font-black text-white shadow-sm overflow-hidden spring-hover-sm"
                                 style={{ background: isSupervisor ? "#8492a6" : roleGradient }}
                             >
                                 {!isSupervisor && profileUser.avatar ? (
@@ -97,14 +97,14 @@ export default function DirectoryProfilePage() {
                                 )}
                             </div>
                             {isFounder && (
-                                <div className="absolute -right-3 -top-3 rotate-[25deg] drop-shadow-sm bg-card p-2 rounded-full border border-border">
+                                <div className="absolute -right-3 -top-3 rotate-[25deg] drop-shadow-sm bg-card p-2 rounded-full border border-border animate-badge-enter">
                                     <Crown className="h-6 w-6 fill-yellow-400 text-yellow-500" />
                                 </div>
                             )}
                         </div>
 
                         {/* Title / Bio info */}
-                        <div className="flex-1 space-y-5 text-center sm:text-left mt-2 sm:mt-0">
+                        <div className="flex-1 space-y-5 text-center sm:text-left mt-2 sm:mt-0 animate-pop-in stagger-3">
                             <div className="space-y-1">
                                 <h1 className="text-3xl font-bold text-foreground tracking-tight">{profileUser.name}</h1>
                                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
@@ -145,7 +145,7 @@ export default function DirectoryProfilePage() {
             </Card>
 
             {/* Projects Showcase */}
-            <div>
+            <div className="animate-pop-in stagger-4">
                 <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
                     <FolderKanban className="h-5 w-5 text-[#a633d6]" />
                     Project Portfolio ({userProjects.length})
@@ -159,10 +159,11 @@ export default function DirectoryProfilePage() {
                     </Card>
                 ) : (
                     <div className="grid gap-4 sm:grid-cols-2">
-                        {userProjects.map((project) => {
+                        {userProjects.map((project, idx) => {
                             const color = STATUS_COLORS[project.status] ?? "#8492a6"
+                            const staggerCls = `stagger-${Math.min(idx + 5, 8)}`
                             return (
-                                <Card key={project.id} className="overflow-hidden border-border/60 bg-card spring-hover-sm">
+                                <Card key={project.id} className={`overflow-hidden border-border/60 bg-card spring-hover-sm animate-pop-in ${staggerCls}`}>
                                     <div className="h-1.5" style={{ background: color }} />
                                     <CardContent className="p-5 flex flex-col h-full">
                                         <div className="flex-1">
@@ -184,7 +185,7 @@ export default function DirectoryProfilePage() {
                                                 <div className="flex flex-wrap gap-2">
                                                     {project.links.map((link) => (
                                                         <a key={link} href={link} target="_blank" rel="noopener noreferrer"
-                                                            className="flex items-center gap-1.5 text-xs font-semibold text-[#338eda] hover:text-[#2b78be] bg-[#338eda]/10 hover:bg-[#338eda]/20 px-2 py-1 rounded-md transition-colors">
+                                                            className="flex items-center gap-1.5 text-xs font-semibold text-[#338eda] hover:text-[#2b78be] bg-[#338eda]/10 hover:bg-[#338eda]/20 px-2 py-1 rounded-md transition-colors spring-press">
                                                             <ExternalLink className="h-3.5 w-3.5" /> View Project
                                                         </a>
                                                     ))}
@@ -209,6 +210,6 @@ export default function DirectoryProfilePage() {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     )
 }

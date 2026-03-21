@@ -90,42 +90,22 @@ export default function LeadersDashboard() {
       </div>
 
       {/* Stats */}
-      <div
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-in fade-in slide-in-from-bottom-8 duration-700"
-      >
-        <StatCard
-          label="Total Members"
-          value={members.length}
-          icon={<Users className="h-5 w-5" />}
-          color="#338eda"
-        />
-        <StatCard
-          label="Meetings Held"
-          value={heldMeetings.length}
-          icon={<CalendarCheck className="h-5 w-5" />}
-          color="#33d6a6"
-        />
-        <StatCard
-          label="Pending Proposals"
-          value={pendingProjects.length}
-          icon={<FolderKanban className="h-5 w-5" />}
-          color="#f1c40f"
-          subtitle="Proposals"
-        />
-        <StatCard
-          label="Pending Leaves"
-          value={pendingLeaves.length}
-          icon={<CalendarClock className="h-5 w-5" />}
-          color="#a633d6"
-          subtitle="Review needed"
-        />
-        <StatCard
-          label="Open Reports"
-          value={openReports.length}
-          icon={<AlertTriangle className="h-5 w-5" />}
-          color="#ec3750"
-          subtitle={openReports.length > 0 ? "Needs attention" : "All clear"}
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="animate-pop-in stagger-1">
+          <StatCard label="Total Members" value={members.length} icon={<Users className="h-5 w-5" />} color="#338eda" />
+        </div>
+        <div className="animate-pop-in stagger-2">
+          <StatCard label="Meetings Held" value={heldMeetings.length} icon={<CalendarCheck className="h-5 w-5" />} color="#33d6a6" />
+        </div>
+        <div className="animate-pop-in stagger-3">
+          <StatCard label="Pending Proposals" value={pendingProjects.length} icon={<FolderKanban className="h-5 w-5" />} color="#f1c40f" subtitle="Proposals" />
+        </div>
+        <div className="animate-pop-in stagger-4">
+          <StatCard label="Pending Leaves" value={pendingLeaves.length} icon={<CalendarClock className="h-5 w-5" />} color="#a633d6" subtitle="Review needed" />
+        </div>
+        <div className="animate-pop-in stagger-5">
+          <StatCard label="Open Reports" value={openReports.length} icon={<AlertTriangle className="h-5 w-5" />} color="#ec3750" subtitle={openReports.length > 0 ? "Needs attention" : "All clear"} />
+        </div>
       </div>
 
       <div
@@ -180,7 +160,7 @@ export default function LeadersDashboard() {
                   {pendingProjects.map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+                      className="flex items-center justify-between rounded-lg border border-border/60 p-3 spring-hover-sm"
                     >
                       <div>
                         <p className="text-sm font-medium text-card-foreground">
@@ -216,7 +196,7 @@ export default function LeadersDashboard() {
                   {openReports.map((r) => (
                     <div
                       key={r.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+                      className="flex items-center justify-between rounded-lg border border-border/60 p-3 spring-hover-sm"
                     >
                       <div>
                         <p className="text-sm font-medium text-card-foreground">
@@ -249,7 +229,7 @@ export default function LeadersDashboard() {
                   {pendingLeaves.map((l) => (
                     <div
                       key={l.id}
-                      className="flex items-center justify-between rounded-lg border border-border/60 p-3"
+                      className="flex items-center justify-between rounded-lg border border-border/60 p-3 spring-hover-sm"
                     >
                       <div>
                         <p className="text-sm font-medium text-card-foreground">

@@ -211,32 +211,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true) // Renamed to isLoading for consistency with original
   const { user } = useAuth()
 
-  // ── Initial Load ──────────────────────────────────────────────────────────
-  const fetchData = useCallback(async () => { // Renamed loadAll to fetchData
-    setIsLoading(true)
-    const [
-      { data: usersData },
-      { data: meetingsData },
-      { data: attendanceData },
-      { data: projectsData },
-      { data: leaveData },
-      { data: reportsData },
-      { data: announcementsData },
-      { data: kudosData },
-      { data: invitationsData }, // Added invitationsData
-    ] = await Promise.all([
-      supabase.from("club_users").select("*"),
-      supabase.from("meetings").select("*").order("date"),
-      supabase.from("attendance_records").select("*"),
-      supabase.from("projects").select("*").order("updated_at", { ascending: false }),
-      supabase.from("leave_requests").select("*").order("created_at", { ascending: false }),
-      supabase.from("problem_reports").select("*").order("created_at", { ascending: false }),
-      supabase.from("announcements").select("*").order("created_at", { ascending: false }),
-      supabase.from("project_kudos").select("*"),
-      supabase.from("project_invitations").select("*"), // Fetch project invitations
-    ])
-
-    // Fetch signed URLs for avatars if any
+  // ── Granular Fetchers ──────────────────────────────────────────────────
+  const fetchUsers = useCallback(async () => {
+    const { data: usersData } = await supabase.from("club_users").select("*")
     const rawUsers = usersData ?? []
     const avatarPaths = rawUsers
       .map((u) => u.avatar)
@@ -256,21 +233,65 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (signed) u.avatar = signed.signedUrl
       return u
     })
-
     setUsers(mappedUsers)
-    const att = attendanceData ?? []
-    setMeetings((meetingsData ?? []).map((r) => mapMeeting(r, att)))
-    setProjects((projectsData ?? []).map(mapProject))
-    setLeaveRequests((leaveData ?? []).map(mapLeaveRequest))
-    setReports((reportsData ?? []).map(mapReport))
-    setAnnouncements((announcementsData ?? []).map(mapAnnouncement))
-    setKudos((kudosData ?? []).map(mapKudo))
-    setInvitations((invitationsData ?? []).map(mapInvitation)) // Set invitations
-    setIsLoading(false)
   }, [])
 
+  const fetchMeetings = useCallback(async () => {
+    const [{ data: meetingsData }, { data: attendanceData }] = await Promise.all([
+      supabase.from("meetings").select("*").order("date"),
+      supabase.from("attendance_records").select("*"),
+    ])
+    const att = attendanceData ?? []
+    setMeetings((meetingsData ?? []).map((r) => mapMeeting(r, att)))
+  }, [])
+
+  const fetchProjects = useCallback(async () => {
+    const { data } = await supabase.from("projects").select("*").order("updated_at", { ascending: false })
+    setProjects((data ?? []).map(mapProject))
+  }, [])
+
+  const fetchLeaveRequests = useCallback(async () => {
+    const { data } = await supabase.from("leave_requests").select("*").order("created_at", { ascending: false }).limit(50)
+    setLeaveRequests((data ?? []).map(mapLeaveRequest))
+  }, [])
+
+  const fetchReports = useCallback(async () => {
+    const { data } = await supabase.from("problem_reports").select("*").order("created_at", { ascending: false }).limit(50)
+    setReports((data ?? []).map(mapReport))
+  }, [])
+
+  const fetchAnnouncements = useCallback(async () => {
+    const { data } = await supabase.from("announcements").select("*").order("created_at", { ascending: false })
+    setAnnouncements((data ?? []).map(mapAnnouncement))
+  }, [])
+
+  const fetchKudos = useCallback(async () => {
+    const { data } = await supabase.from("project_kudos").select("*")
+    setKudos((data ?? []).map(mapKudo))
+  }, [])
+
+  const fetchInvitations = useCallback(async () => {
+    const { data } = await supabase.from("project_invitations").select("*")
+    setInvitations((data ?? []).map(mapInvitation))
+  }, [])
+
+  // ── Initial Load ──────────────────────────────────────────────────────────
+  const fetchData = useCallback(async () => {
+    setIsLoading(true)
+    await Promise.all([
+      fetchUsers(),
+      fetchMeetings(),
+      fetchProjects(),
+      fetchLeaveRequests(),
+      fetchReports(),
+      fetchAnnouncements(),
+      fetchKudos(),
+      fetchInvitations()
+    ])
+    setIsLoading(false)
+  }, [fetchUsers, fetchMeetings, fetchProjects, fetchLeaveRequests, fetchReports, fetchAnnouncements, fetchKudos, fetchInvitations])
+
   useEffect(() => {
-    // Only load and subscribe if we actually have a user
     if (!user) {
       setUsers([])
       setMeetings([])
@@ -279,29 +300,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setReports([])
       setAnnouncements([])
       setKudos([])
-      setInvitations([]) // Clear invitations
+      setInvitations([])
       setIsLoading(false)
       return
     }
 
-    fetchData() // Call fetchData
+    fetchData()
 
-    // Real-time subscriptions — reload affected slice on any change
+    // Real-time subscriptions — reload ONLY affected slice
     const channels = [
-      supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, fetchData),
-      supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, fetchData),
-      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, fetchData),
-      supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, fetchData),
-      supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, fetchData),
-      supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, fetchData),
-      supabase.channel("ann_changes").on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, fetchData),
-      supabase.channel("kudos_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, fetchData),
-      supabase.channel("invitations_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_invitations" }, fetchData), // Added invitations channel
+      supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, fetchUsers),
+      supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, fetchMeetings),
+      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, fetchMeetings),
+      supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, fetchProjects),
+      supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, fetchLeaveRequests),
+      supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, fetchReports),
+      supabase.channel("ann_changes").on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, fetchAnnouncements),
+      supabase.channel("kudos_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, fetchKudos),
+      supabase.channel("invitations_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_invitations" }, fetchInvitations),
     ]
 
     channels.forEach((c) => c.subscribe())
     return () => { channels.forEach((c) => supabase.removeChannel(c)) }
-  }, [user, fetchData])
+  }, [user, fetchData, fetchUsers, fetchMeetings, fetchProjects, fetchLeaveRequests, fetchReports, fetchAnnouncements, fetchKudos, fetchInvitations])
 
   // ─── Members ──────────────────────────────────────────────────────────────
   const addMember = useCallback(async (member: Omit<User, "id" | "role" | "joinDate">) => {
