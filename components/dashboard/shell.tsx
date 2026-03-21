@@ -155,6 +155,7 @@ export function DashboardShell({
       <div className="border-t border-sidebar-border p-4">
         {user && (
           <Link
+            id="tour-sidebar-profile"
             href={`/directory/${user.id}`}
             onClick={() => setSheetOpen(false)}
             className="mb-3 flex items-center gap-3 rounded-xl p-2 -mx-2 spring-press transition-colors hover:bg-sidebar-accent group/profile"

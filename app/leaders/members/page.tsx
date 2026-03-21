@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import type { User } from "@/lib/types"
@@ -43,7 +43,7 @@ function getMemberStats(userId: string, meetings: any[]) {
 }
 
 export default function MembersPage() {
-  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle, updateMemberAvatar, uploadAvatar } = useData()
+  const { users, meetings, addMember, removeMember, updateMemberName, updateMemberTitle, updateMemberAvatar, uploadAvatar, updateMemberTags } = useData()
   const { user } = useAuth()
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
@@ -125,6 +125,15 @@ export default function MembersPage() {
   const removeAvatar = () => {
     setEditAvatar("")
     toast.success("Avatar removed")
+  }
+
+  async function handleLaunchTour(memberTarget: User) {
+    if (memberTarget.tags.includes("needs-tour")) {
+      toast.info(`${memberTarget.name} is already queued for a tour.`)
+      return
+    }
+    await updateMemberTags(memberTarget.id, [...(memberTarget.tags || []), "needs-tour"])
+    toast.success(`Tour queued! ${memberTarget.name} will see it on next login.`)
   }
 
   return (
@@ -282,6 +291,17 @@ export default function MembersPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1">
+                      {/* Launch Tour */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-[#338eda] transition-colors"
+                        onClick={() => handleLaunchTour(member)}
+                        title="Queue Tour"
+                      >
+                        <Map className="h-4 w-4" />
+                      </Button>
+
                       {/* Edit (Restricted to Dhyaan) */}
                       {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(user?.email?.toLowerCase() || "") && (
                         <Dialog open={editId === member.id} onOpenChange={(o) => {

@@ -7,6 +7,16 @@ import { StatCard } from "@/components/dashboard/stat-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { driver } from "driver.js"
+import "driver.js/dist/driver.css"
+import {
   CalendarCheck,
   FolderKanban,
   Flame,
@@ -20,6 +30,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
+import { useState, useEffect } from "react"
 
 const statusColors: Record<string, string> = {
   proposed: "var(--hc-yellow)",
@@ -32,7 +43,41 @@ const STREAK_RANK_EMOJIS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
 export default function MemberDashboard() {
   const { user } = useAuth()
-  const { meetings, projects, leaveRequests, announcements, users, invitations, acceptInvitation, declineInvitation } = useData()
+  const { meetings, projects, leaveRequests, announcements, users, invitations, acceptInvitation, declineInvitation, updateMemberTags } = useData()
+  const [showWelcome, setShowWelcome] = useState(false)
+
+  useEffect(() => {
+    if (user?.tags?.includes("needs-tour")) {
+      setShowWelcome(true)
+    }
+  }, [user?.tags])
+
+  const handleStartTour = () => {
+    setShowWelcome(false)
+    const tour = driver({
+      showProgress: true,
+      animate: true,
+      steps: [
+        { element: '#tour-stats', popover: { title: 'Dashboard Stats', description: 'Here you can quickly view your attendance; streak; and active projects.', side: "bottom", align: 'start' } },
+        { element: '#tour-projects', popover: { title: 'Your Projects', description: 'Quickly access projects you are working on.', side: "right", align: 'start' } },
+        { element: '#tour-leaderboard', popover: { title: 'Leaderboard', description: 'Check out how you rank against other club members.', side: "left", align: 'start' } },
+        { element: '#tour-sidebar-profile', popover: { title: 'Your Portfolio', description: 'Click your profile here to view or edit your public portfolio.', side: "right", align: 'start' } }
+      ],
+      onDestroyed: () => {
+        if (user) {
+          updateMemberTags(user.id, user.tags.filter((t: string) => t !== "needs-tour"))
+        }
+      }
+    })
+    tour.drive()
+  }
+
+  const handleSkipTour = () => {
+    setShowWelcome(false)
+    if (user) {
+      updateMemberTags(user.id, user.tags.filter((t: string) => t !== "needs-tour"))
+    }
+  }
 
   if (!user) return null
 
@@ -168,7 +213,7 @@ export default function MemberDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+      <div id="tour-stats" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
         <div className="animate-slide-up-fade stagger-1 h-full">
           <StatCard
             label="Attendance"
@@ -216,7 +261,7 @@ export default function MemberDashboard() {
         style={{ animationFillMode: "both" }}
       >
         {/* My Projects */}
-        <Card className="border-border/60 bg-card">
+        <Card id="tour-projects" className="border-border/60 bg-card">
           <CardHeader>
             <CardTitle className="text-base">My Projects</CardTitle>
           </CardHeader>
@@ -256,7 +301,7 @@ export default function MemberDashboard() {
         </Card>
 
         {/* Streak Leaderboard */}
-        <Card className="border-border/60 bg-card">
+        <Card id="tour-leaderboard" className="border-border/60 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Trophy className="h-4 w-4 text-[#ff8c37]" />
@@ -369,6 +414,30 @@ export default function MemberDashboard() {
           })()}
         </CardContent>
       </Card>
+
+      {/* Welcome Tour Dialog */}
+      <Dialog open={showWelcome} onOpenChange={(open) => {
+        if (!open) handleSkipTour()
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <span className="text-3xl">👋</span> Welcome to AICS Hack Club, {user.name.split(' ')[0]}!
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              We are so excited to have you on board! Would you like a quick tour of your new member portal to help you find your way around?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0 mt-4">
+            <Button variant="ghost" onClick={handleSkipTour}>
+              Skip
+            </Button>
+            <Button className="bg-[#338eda] text-white hover:bg-[#2b78be] font-bold spring-press" onClick={handleStartTour}>
+              Let's Go!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
