@@ -111,14 +111,12 @@ export default function MemberDashboard() {
   const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
   const eligibleMembers = users.filter(u => u.email?.toLowerCase() !== supervisorEmail)
 
-  // Priority name order (after Dhyaan who is sorted by email)
+  // Priority name order
   const PRIORITY_NAMES = ["rohan singh", "kota", "pranesh", "daksh"]
-  const dhyaanEmail = "dhyaanmanganahalli@gmail.com"
 
   function getPriorityIndex(entry: { user: { email?: string; name: string } }) {
-    const email = entry.user.email?.toLowerCase() || ""
-    if (email === dhyaanEmail) return -1
     const nameLower = entry.user.name.toLowerCase()
+    if (nameLower.includes("dhyaan")) return -1
     const idx = PRIORITY_NAMES.findIndex(p => nameLower.includes(p))
     return idx === -1 ? PRIORITY_NAMES.length : idx
   }
@@ -126,13 +124,13 @@ export default function MemberDashboard() {
   const rawEntries = eligibleMembers.map(u => ({
     user: u,
     streak: calculateStreak(u.id, meetings),
-    isPinned: u.email?.toLowerCase() === dhyaanEmail,
+    isPinned: u.name.toLowerCase().includes("dhyaan"),
     priority: getPriorityIndex({ user: u })
   }))
 
   rawEntries.sort((a, b) => {
-    if (a.isPinned) return -1
-    if (b.isPinned) return 1
+    if (a.isPinned && !b.isPinned) return -1
+    if (!a.isPinned && b.isPinned) return 1
     if (b.streak !== a.streak) return b.streak - a.streak
     return a.priority - b.priority
   })

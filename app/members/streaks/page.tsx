@@ -28,13 +28,11 @@ export default function MemberStreaksPage() {
     if (!user) return null
 
     const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
-    const dhyaanEmail = "dhyaanmanganahalli@gmail.com"
     const PRIORITY_NAMES = ["rohan singh", "kota", "pranesh", "daksh"]
 
     function getPriorityIndex(entry: { user: { email?: string; name: string } }) {
-        const email = entry.user.email?.toLowerCase() || ""
-        if (email === dhyaanEmail) return -1
         const nameLower = entry.user.name.toLowerCase()
+        if (nameLower.includes("dhyaan")) return -1
         const idx = PRIORITY_NAMES.findIndex(p => nameLower.includes(p))
         return idx === -1 ? PRIORITY_NAMES.length : idx
     }
@@ -44,13 +42,13 @@ export default function MemberStreaksPage() {
     const rawEntries = eligibleMembers.map(u => ({
         user: u,
         streak: calculateStreak(u.id, meetings),
-        isPinned: u.email?.toLowerCase() === dhyaanEmail,
+        isPinned: u.name.toLowerCase().includes("dhyaan"),
         priority: getPriorityIndex({ user: u })
     }))
 
     rawEntries.sort((a, b) => {
-        if (a.isPinned) return -1
-        if (b.isPinned) return 1
+        if (a.isPinned && !b.isPinned) return -1
+        if (!a.isPinned && b.isPinned) return 1
         if (b.streak !== a.streak) return b.streak - a.streak
         return a.priority - b.priority
     })
@@ -102,7 +100,7 @@ export default function MemberStreaksPage() {
                     <div className="flex-1">
                         <p className="font-bold text-[#ff8c37] text-base">
                             Your rank: #{myEntry.rank + 1}
-                            {myRank === 0 && myEntry.user.email?.toLowerCase() !== dhyaanEmail ? " 🎉 You're in the lead!" : ""}
+                            {myRank === 0 && !myEntry.user.name.toLowerCase().includes("dhyaan") ? " 🎉 You're in the lead!" : ""}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                             {myEntry.streak > 0
