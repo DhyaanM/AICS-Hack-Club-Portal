@@ -29,24 +29,32 @@ export default function MemberStreaksPage() {
 
     const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
     const dhyaanEmail = "dhyaanmanganahalli@gmail.com"
+    const PRIORITY_NAMES = ["rohan singh", "kota", "pranesh", "daksh"]
+
+    function getPriorityIndex(entry: { user: { email?: string; name: string } }) {
+        const email = entry.user.email?.toLowerCase() || ""
+        if (email === dhyaanEmail) return -1
+        const nameLower = entry.user.name.toLowerCase()
+        const idx = PRIORITY_NAMES.findIndex(p => nameLower.includes(p))
+        return idx === -1 ? PRIORITY_NAMES.length : idx
+    }
 
     const eligibleMembers = users.filter(u => u.email?.toLowerCase() !== supervisorEmail)
 
-    // Build raw entries with streaks
     const rawEntries = eligibleMembers.map(u => ({
         user: u,
         streak: calculateStreak(u.id, meetings),
         isPinned: u.email?.toLowerCase() === dhyaanEmail,
+        priority: getPriorityIndex({ user: u })
     }))
 
-    // Sort: Dhyaan first, then by streak desc
     rawEntries.sort((a, b) => {
         if (a.isPinned) return -1
         if (b.isPinned) return 1
-        return b.streak - a.streak
+        if (b.streak !== a.streak) return b.streak - a.streak
+        return a.priority - b.priority
     })
 
-    // Assign tied ranks (Dhyaan always rank 0 regardless of streak)
     const leaderboard: LeaderboardEntry[] = []
     let rankCounter = 0
 
@@ -54,11 +62,8 @@ export default function MemberStreaksPage() {
         const entry = rawEntries[i]
         if (entry.isPinned) {
             leaderboard.push({ ...entry, rank: 0 })
-            // Don't advance rankCounter — real rank 1 starts after Dhyaan
-            // but the next person still competes from position 1 onward
             rankCounter = 1
         } else {
-            // Check if previous non-pinned entry has same streak
             const prevNonPinned = leaderboard.filter(e => !e.isPinned).slice(-1)[0]
             if (prevNonPinned && prevNonPinned.streak === entry.streak) {
                 leaderboard.push({ ...entry, rank: prevNonPinned.rank })

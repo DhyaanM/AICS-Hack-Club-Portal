@@ -123,37 +123,39 @@ export default function MemberDashboard() {
     return idx === -1 ? PRIORITY_NAMES.length : idx
   }
 
-  const streakSorted = [...eligibleMembers]
-    .map(u => ({ user: u, streak: calculateStreak(u.id, meetings), rank: 0 }))
-    .sort((a, b) => b.streak - a.streak)
+  const rawEntries = eligibleMembers.map(u => ({
+    user: u,
+    streak: calculateStreak(u.id, meetings),
+    isPinned: u.email?.toLowerCase() === dhyaanEmail,
+    priority: getPriorityIndex({ user: u })
+  }))
 
-  let currentRank = 0
-  if (streakSorted.length > 0) {
-    streakSorted[0].rank = 0
-  }
-  for(let i = 1; i < streakSorted.length; i++) {
-    if(streakSorted[i].streak === streakSorted[i-1].streak) {
-       streakSorted[i].rank = currentRank
+  rawEntries.sort((a, b) => {
+    if (a.isPinned) return -1
+    if (b.isPinned) return 1
+    if (b.streak !== a.streak) return b.streak - a.streak
+    return a.priority - b.priority
+  })
+
+  let rankCounter = 0
+  const leaderboardFull: any[] = []
+  for (let i = 0; i < rawEntries.length; i++) {
+    const entry = rawEntries[i]
+    if (entry.isPinned) {
+        leaderboardFull.push({ ...entry, rank: 0 })
+        rankCounter = 1
     } else {
-       currentRank++
-       streakSorted[i].rank = currentRank
+        const prevNonPinned = leaderboardFull.filter(e => !e.isPinned).slice(-1)[0]
+        if (prevNonPinned && prevNonPinned.streak === entry.streak) {
+            leaderboardFull.push({ ...entry, rank: prevNonPinned.rank })
+        } else {
+            leaderboardFull.push({ ...entry, rank: rankCounter })
+            rankCounter++
+        }
     }
   }
 
-  streakSorted.forEach(s => {
-    if(s.user.email?.toLowerCase() === dhyaanEmail) {
-       s.rank = 0
-    }
-  })
-
-  streakSorted.sort((a, b) => {
-    const pa = getPriorityIndex(a)
-    const pb = getPriorityIndex(b)
-    if (pa !== pb) return pa - pb
-    return b.streak - a.streak
-  })
-
-  const leaderboard = streakSorted.slice(0, 5)
+  const leaderboard = leaderboardFull.slice(0, 5)
 
   const myInvitations = invitations.filter(inv => inv.inviteeId === user.id && inv.status === 'pending')
 
