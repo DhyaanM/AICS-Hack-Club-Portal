@@ -10,7 +10,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon, color, subtitle }: StatCardProps) {
   return (
-    <div className="spring-hover-sm relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
+    <div className="spring-hover-sm relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm h-full">
       {/* Subtle tinted corner */}
       <div
         className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-bl-full opacity-[0.06]"
