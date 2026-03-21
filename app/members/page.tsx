@@ -58,9 +58,27 @@ export default function MemberDashboard() {
   // Streak leaderboard (top 5 members by streak, exclude supervisor)
   const supervisorEmail = process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
   const eligibleMembers = users.filter(u => u.email?.toLowerCase() !== supervisorEmail)
+
+  // Priority name order (after Dhyaan who is sorted by email)
+  const PRIORITY_NAMES = ["rohan singh", "kota", "pranesh", "daksh"]
+  const dhyaanEmail = "dhyaanmanganahalli@gmail.com"
+
+  function getPriorityIndex(entry: { user: { email?: string; name: string } }) {
+    const email = entry.user.email?.toLowerCase() || ""
+    if (email === dhyaanEmail) return -1
+    const nameLower = entry.user.name.toLowerCase()
+    const idx = PRIORITY_NAMES.findIndex(p => nameLower.includes(p))
+    return idx === -1 ? PRIORITY_NAMES.length : idx
+  }
+
   const leaderboard = eligibleMembers
     .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
-    .sort((a, b) => b.streak - a.streak)
+    .sort((a, b) => {
+      const pa = getPriorityIndex(a)
+      const pb = getPriorityIndex(b)
+      if (pa !== pb) return pa - pb
+      return b.streak - a.streak
+    })
     .slice(0, 5)
 
   const myInvitations = invitations.filter(inv => inv.inviteeId === user.id && inv.status === 'pending')
@@ -150,10 +168,8 @@ export default function MemberDashboard() {
       )}
 
       {/* Stats */}
-      <div
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        <div className="animate-pop-in stagger-1">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+        <div className="animate-pop-in stagger-1 h-full">
           <StatCard
             label="Attendance"
             value={`${attendancePct}%`}
@@ -168,7 +184,7 @@ export default function MemberDashboard() {
             subtitle={`${attended}/${totalMeetings} meetings`}
           />
         </div>
-        <Link href="/members/streaks" className="block spring-hover-sm animate-pop-in stagger-2">
+        <Link href="/members/streaks" className="block spring-hover-sm animate-pop-in stagger-2 h-full">
           <StatCard
             label="Streak"
             value={streak}
@@ -177,7 +193,7 @@ export default function MemberDashboard() {
             subtitle="consecutive meetings"
           />
         </Link>
-        <div className="animate-pop-in stagger-3">
+        <div className="animate-pop-in stagger-3 h-full">
           <StatCard
             label="Active Projects"
             value={activeProjects.length}
@@ -185,7 +201,7 @@ export default function MemberDashboard() {
             color="#338eda"
           />
         </div>
-        <div className="animate-pop-in stagger-4">
+        <div className="animate-pop-in stagger-4 h-full">
           <StatCard
             label="Pending Leaves"
             value={pendingLeaves.length}

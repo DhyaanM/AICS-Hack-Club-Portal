@@ -54,7 +54,7 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
+            <div className="animate-pop-in">
                 <h1 className="text-2xl font-bold text-foreground">User Settings</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                     Manage your public profile and interface preferences.
@@ -63,7 +63,7 @@ export default function SettingsPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Profile Settings */}
-                <Card className="border-border/60 bg-card">
+                <Card className="border-border/60 bg-card animate-pop-in stagger-1">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <UserCircle className="h-5 w-5 text-[#338eda]" />
@@ -94,7 +94,7 @@ export default function SettingsPage() {
                 </Card>
 
                 {/* Appearance Settings */}
-                <Card className="border-border/60 bg-card">
+                <Card className="border-border/60 bg-card animate-pop-in stagger-2">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <Palette className="h-5 w-5 text-[#a633d6]" />

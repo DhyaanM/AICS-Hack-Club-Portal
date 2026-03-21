@@ -68,7 +68,7 @@ export default function LeaderAnnouncementsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-pop-in">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Announcements</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -141,10 +141,10 @@ export default function LeaderAnnouncementsPage() {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {sorted.map((ann) => (
+                    {sorted.map((ann, idx) => (
                         <Card
                             key={ann.id}
-                            className="border-border/60 bg-card overflow-hidden transition-all"
+                            className={`animate-pop-in stagger-${Math.min(idx + 1, 8)} border-border/60 bg-card overflow-hidden transition-all spring-hover-sm`}
                             style={ann.pinned ? { borderColor: "#ff8c37", borderLeftWidth: "3px" } : {}}
                         >
                             <CardContent className="p-5">

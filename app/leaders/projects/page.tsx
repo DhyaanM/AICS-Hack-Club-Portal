@@ -151,7 +151,7 @@ export default function LeaderProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-pop-in">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Projects</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -275,12 +275,13 @@ export default function LeaderProjectsPage() {
         <p className="py-16 text-center text-muted-foreground text-sm">No projects in this category.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((project) => {
+          {sorted.map((project, idx) => {
             const color = STATUS_COLORS[project.status] ?? "#8492a6"
+            const staggerCls = `stagger-${Math.min(idx + 1, 8)}`
             return (
               <div
                 key={project.id}
-                className="spring-hover cursor-pointer overflow-hidden rounded-2xl border border-border/50 bg-card"
+                className={`spring-hover cursor-pointer overflow-hidden rounded-2xl border border-border/50 bg-card animate-pop-in ${staggerCls}`}
                 onClick={() => { setSelected(project); setComment(project.leaderComment ?? "") }}
               >
                 <div className="h-1.5" style={{ background: color }} />
