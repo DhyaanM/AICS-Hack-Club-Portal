@@ -128,12 +128,14 @@ export default function MembersPage() {
   }
 
   async function handleLaunchTour(memberTarget: User) {
-    if (memberTarget.tags.includes("needs-tour")) {
-      toast.info(`${memberTarget.name} is already queued for a tour.`)
-      return
+    const hasTour = memberTarget.tags?.includes("needs-tour")
+    if (hasTour) {
+      await updateMemberTags(memberTarget.id, memberTarget.tags.filter(t => t !== "needs-tour"))
+      toast.success(`Tour disabled for ${memberTarget.name}.`)
+    } else {
+      await updateMemberTags(memberTarget.id, [...(memberTarget.tags || []), "needs-tour"])
+      toast.success(`Tour queued! ${memberTarget.name} will see it on next login.`)
     }
-    await updateMemberTags(memberTarget.id, [...(memberTarget.tags || []), "needs-tour"])
-    toast.success(`Tour queued! ${memberTarget.name} will see it on next login.`)
   }
 
   return (
@@ -291,13 +293,18 @@ export default function MembersPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1">
-                      {/* Launch Tour */}
+                      {/* Launch Tour Toggle */}
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-[#338eda] transition-colors"
+                        className={cn(
+                          "h-8 w-8 transition-colors",
+                          member.tags?.includes("needs-tour") 
+                            ? "text-[#338eda] bg-[#338eda]/10 hover:bg-[#338eda]/20" 
+                            : "text-muted-foreground hover:text-[#338eda]"
+                        )}
                         onClick={() => handleLaunchTour(member)}
-                        title="Queue Tour"
+                        title={member.tags?.includes("needs-tour") ? "Disable queued tour" : "Queue tour"}
                       >
                         <Map className="h-4 w-4" />
                       </Button>

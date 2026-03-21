@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import { useState, useEffect } from "react"
+import type { User } from "@/lib/types"
 
 const statusColors: Record<string, string> = {
   proposed: "var(--hc-yellow)",
@@ -122,28 +123,37 @@ export default function MemberDashboard() {
     return idx === -1 ? PRIORITY_NAMES.length : idx
   }
 
-  const sortedLeaderboard = eligibleMembers
-    .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
-    .sort((a, b) => {
-      const pa = getPriorityIndex(a)
-      const pb = getPriorityIndex(b)
-      if (pa !== pb) return pa - pb
-      return b.streak - a.streak
-    })
-    .slice(0, 5)
+  const streakSorted = [...eligibleMembers]
+    .map(u => ({ user: u, streak: calculateStreak(u.id, meetings), rank: 0 }))
+    .sort((a, b) => b.streak - a.streak)
 
   let currentRank = 0
-  let currentStreak = -1
-  const leaderboard = sortedLeaderboard.map((entry, index) => {
-    if (index === 0) {
-      currentRank = 0
-      currentStreak = entry.streak
-    } else if (entry.streak !== currentStreak || getPriorityIndex(entry) !== getPriorityIndex(sortedLeaderboard[index - 1])) {
-      currentRank = index
-      currentStreak = entry.streak
+  if (streakSorted.length > 0) {
+    streakSorted[0].rank = 0
+  }
+  for(let i = 1; i < streakSorted.length; i++) {
+    if(streakSorted[i].streak === streakSorted[i-1].streak) {
+       streakSorted[i].rank = currentRank
+    } else {
+       currentRank++
+       streakSorted[i].rank = currentRank
     }
-    return { ...entry, rank: currentRank }
+  }
+
+  streakSorted.forEach(s => {
+    if(s.user.email?.toLowerCase() === dhyaanEmail) {
+       s.rank = 0
+    }
   })
+
+  streakSorted.sort((a, b) => {
+    const pa = getPriorityIndex(a)
+    const pb = getPriorityIndex(b)
+    if (pa !== pb) return pa - pb
+    return b.streak - a.streak
+  })
+
+  const leaderboard = streakSorted.slice(0, 5)
 
   const myInvitations = invitations.filter(inv => inv.inviteeId === user.id && inv.status === 'pending')
 
