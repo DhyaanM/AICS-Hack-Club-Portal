@@ -42,9 +42,12 @@ const statusColors: Record<string, string> = {
 const STREAK_RANK_EMOJIS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
 export default function MemberDashboard() {
-  const { user } = useAuth()
+  const { user: authUser } = useAuth()
   const { meetings, projects, leaveRequests, announcements, users, invitations, acceptInvitation, declineInvitation, updateMemberTags } = useData()
   const [showWelcome, setShowWelcome] = useState(false)
+
+  // Use the live DB user so tags update in real-time when removed
+  const user = users.find(u => u.email === authUser?.email) || authUser as User & { tags?: string[] }
 
   useEffect(() => {
     if (user?.tags?.includes("needs-tour")) {
@@ -57,10 +60,13 @@ export default function MemberDashboard() {
     const tour = driver({
       showProgress: true,
       animate: true,
+      popoverClass: 'hc-tour-popover',
       steps: [
         { element: '#tour-stats', popover: { title: 'Dashboard Stats', description: 'Here you can quickly view your attendance; streak; and active projects.', side: "bottom", align: 'start' } },
         { element: '#tour-projects', popover: { title: 'Your Projects', description: 'Quickly access projects you are working on.', side: "right", align: 'start' } },
         { element: '#tour-leaderboard', popover: { title: 'Leaderboard', description: 'Check out how you rank against other club members.', side: "left", align: 'start' } },
+        { element: '#tour-sidebar-leaves', popover: { title: 'Manage Leaves', description: 'Submit or track your absence requests easily.', side: "right", align: 'start' } },
+        { element: '#tour-sidebar-reports', popover: { title: 'Report Issues', description: 'Having trouble? Report issues directly to the club leaders.', side: "right", align: 'start' } },
         { element: '#tour-sidebar-profile', popover: { title: 'Your Portfolio', description: 'Click your profile here to view or edit your public portfolio.', side: "right", align: 'start' } }
       ],
       onDestroyed: () => {
@@ -116,7 +122,7 @@ export default function MemberDashboard() {
     return idx === -1 ? PRIORITY_NAMES.length : idx
   }
 
-  const leaderboard = eligibleMembers
+  const sortedLeaderboard = eligibleMembers
     .map(u => ({ user: u, streak: calculateStreak(u.id, meetings) }))
     .sort((a, b) => {
       const pa = getPriorityIndex(a)
@@ -125,6 +131,19 @@ export default function MemberDashboard() {
       return b.streak - a.streak
     })
     .slice(0, 5)
+
+  let currentRank = 0
+  let currentStreak = -1
+  const leaderboard = sortedLeaderboard.map((entry, index) => {
+    if (index === 0) {
+      currentRank = 0
+      currentStreak = entry.streak
+    } else if (entry.streak !== currentStreak || getPriorityIndex(entry) !== getPriorityIndex(sortedLeaderboard[index - 1])) {
+      currentRank = index
+      currentStreak = entry.streak
+    }
+    return { ...entry, rank: currentRank }
+  })
 
   const myInvitations = invitations.filter(inv => inv.inviteeId === user.id && inv.status === 'pending')
 
@@ -322,7 +341,7 @@ export default function MemberDashboard() {
                     className={`animate-slide-up-fade ${staggerCls} flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:scale-[1.015] active:scale-[0.99] ${isMe ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30" : "border border-border/40 hover:bg-muted/20"}`}
                   >
                     <span className="text-base w-6 text-center select-none">
-                      {STREAK_RANK_EMOJIS[idx] ?? `${idx + 1}.`}
+                      {STREAK_RANK_EMOJIS[entry.rank] ?? `${entry.rank + 1}.`}
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-semibold truncate ${isMe ? "text-[#ff8c37]" : "text-foreground"}`}>

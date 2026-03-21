@@ -125,6 +125,7 @@ export function DashboardShell({
             return (
               <Link
                 key={item.href}
+                id={item.href === "/members/leave" ? "tour-sidebar-leaves" : item.href === "/members/reports" ? "tour-sidebar-reports" : undefined}
                 href={item.href}
                 onClick={() => setSheetOpen(false)}
                 className={cn(
