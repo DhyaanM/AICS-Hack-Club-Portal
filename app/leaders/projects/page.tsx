@@ -49,9 +49,28 @@ function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 }
 
+// ─── GitHub helpers ────────────────────────────────────────────────────────────
+function isGitHubUrl(url: string) {
+  return url.toLowerCase().includes("github.com")
+}
+
+function getRepoName(url: string) {
+  try {
+    const parts = new URL(url).pathname.split("/").filter(Boolean)
+    if (parts.length >= 2) return `${parts[0]}/${parts[1]}`
+  } catch {}
+  return url
+}
+
+const GH_ICON = (
+  <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+  </svg>
+)
+
 export default function LeaderProjectsPage() {
   const { user } = useAuth()
-  const { projects, users, kudos, addProject, updateProjectStatus, deleteProject, addKudo, removeKudo } = useData()
+  const { projects, users, kudos, addProject, updateProjectStatus, deleteProject, addKudo, removeKudo, updateProjectLinks } = useData()
   const [tab, setTab] = useState<ProjectStatus | "all">("all")
   const [selected, setSelected] = useState<Project | null>(null)
   const [comment, setComment] = useState("")
@@ -64,7 +83,12 @@ export default function LeaderProjectsPage() {
   const [newStatus, setNewStatus] = useState<ProjectStatus>("in-progress")
   const [newType, setNewType] = useState<"solo" | "group">("solo")
   const [newSelectedMembers, setNewSelectedMembers] = useState<string[]>([])
+  const [newGithubUrl, setNewGithubUrl] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  // GitHub link dialog state
+  const [ghDialogProject, setGhDialogProject] = useState<string | null>(null)
+  const [ghInputUrl, setGhInputUrl] = useState("")
 
   const allMembers = users.filter(u => u.email?.toLowerCase() !== process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase())
 
@@ -102,6 +126,10 @@ export default function LeaderProjectsPage() {
       toast.error("Please fill in all required fields.")
       return
     }
+    if (newGithubUrl.trim() && !isGitHubUrl(newGithubUrl.trim())) {
+      toast.error("Please enter a valid GitHub URL (e.g. https://github.com/user/repo).")
+      return
+    }
     if (!user) return
     setSubmitting(true)
     try {
@@ -115,16 +143,35 @@ export default function LeaderProjectsPage() {
         createdBy: user.id,
         memberIds,
         isGroup: newType === "group",
-        links: [],
+        links: newGithubUrl.trim() ? [newGithubUrl.trim()] : [],
         progressNotes: [],
       })
       toast.success("Project created!")
-      setNewTitle(""); setNewDesc(""); setNewCategory(""); setNewType("solo"); setNewSelectedMembers([]); setNewStatus("in-progress")
+      setNewTitle(""); setNewDesc(""); setNewCategory(""); setNewType("solo"); setNewSelectedMembers([]); setNewStatus("in-progress"); setNewGithubUrl("")
       setCreateOpen(false)
     } catch (err: any) {
       toast.error("Failed: " + (err?.message ?? "Unknown error"))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleAddGithub(projectId: string) {
+    const url = ghInputUrl.trim()
+    if (!url) return
+    if (!isGitHubUrl(url)) {
+      toast.error("Please enter a valid GitHub URL.")
+      return
+    }
+    const project = projects.find((p) => p.id === projectId)
+    const existing = (project?.links ?? []).filter((l) => !isGitHubUrl(l))
+    await updateProjectLinks(projectId, [url, ...existing])
+    toast.success("GitHub repo linked! 🎉")
+    setGhDialogProject(null)
+    setGhInputUrl("")
+    if (selected && selected.id === projectId) {
+      // update selected in place so the detail dialog shows the new link
+      setSelected({ ...selected, links: [url, ...existing] })
     }
   }
 
@@ -186,6 +233,23 @@ export default function LeaderProjectsPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* GitHub URL */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  GitHub Repository <span className="font-normal text-muted-foreground">(optional)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{GH_ICON}</span>
+                  <Input
+                    value={newGithubUrl}
+                    onChange={(e) => setNewGithubUrl(e.target.value)}
+                    placeholder="https://github.com/username/repo"
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Initial Status</label>
                 <div className="flex gap-2 flex-wrap">
@@ -278,6 +342,7 @@ export default function LeaderProjectsPage() {
           {sorted.map((project, idx) => {
             const color = STATUS_COLORS[project.status] ?? "#8492a6"
             const staggerCls = `stagger-${Math.min(idx + 1, 8)}`
+            const githubLink = project.links?.find(isGitHubUrl)
             return (
               <div
                 key={project.id}
@@ -286,7 +351,7 @@ export default function LeaderProjectsPage() {
               >
                 <div className="h-1.5" style={{ background: color }} />
                 <div className="p-5">
-                  <div className="mb-3 flex items-start justify-between gap-2">
+                  <div className="mb-2 flex items-start justify-between gap-2">
                     <h3 className="font-bold text-foreground leading-tight">{project.title}</h3>
                     <Badge
                       variant="secondary"
@@ -297,6 +362,16 @@ export default function LeaderProjectsPage() {
                     </Badge>
                   </div>
                   <p className="mb-3 text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                  
+                  {githubLink && (
+                    <div className="mb-3">
+                      <span className="flex items-center gap-1.5 rounded-full bg-[#24292e] dark:bg-white/10 text-white dark:text-foreground px-2.5 py-1 text-[10px] font-semibold w-fit">
+                        {GH_ICON}
+                        {getRepoName(githubLink)}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <div className="flex -space-x-2">
                       {project.memberIds.slice(0, 3).map((id) => (
@@ -392,20 +467,38 @@ export default function LeaderProjectsPage() {
               </p>
             </div>
 
-            {selected.links && selected.links.length > 0 && (
-              <div className="space-y-1">
+            <div className="space-y-2 pt-2 border-t border-border/50">
+              <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Links</p>
-                {selected.links.map((link) => (
-                  <a key={link} href={link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-[#338eda] hover:underline">
-                    <ExternalLink className="h-3.5 w-3.5" /> {link}
-                  </a>
-                ))}
+                {!selected.links?.some(isGitHubUrl) && (
+                  <button
+                    onClick={() => { setGhDialogProject(selected.id); setGhInputUrl("") }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-[#a633d6] transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Link GitHub Repo
+                  </button>
+                )}
               </div>
-            )}
+              
+              {selected.links && selected.links.length > 0 ? (
+                <div className="flex flex-col gap-1.5">
+                  {selected.links.map((link) => {
+                    const isGh = isGitHubUrl(link)
+                    return (
+                      <a key={link} href={link} target="_blank" rel="noopener noreferrer"
+                        className={`flex items-center gap-1.5 text-sm w-fit transition-all hover:underline ${isGh ? "font-medium" : "text-[#338eda]"}`}>
+                        {isGh ? GH_ICON : <ExternalLink className="h-3.5 w-3.5" />} {isGh ? getRepoName(link) : link}
+                      </a>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">No links added</p>
+              )}
+            </div>
 
             {selected.progressNotes && selected.progressNotes.length > 0 && (
-              <div className="space-y-1">
+              <div className="space-y-1 border-t border-border/50 pt-2">
                 <p className="text-sm font-semibold">Progress Notes</p>
                 <ul className="space-y-1">
                   {selected.progressNotes.map((note, i) => (
@@ -419,7 +512,7 @@ export default function LeaderProjectsPage() {
             )}
 
             {/* Leader comment */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 border-t border-border/50 pt-2">
               <label className="flex items-center gap-1.5 text-sm font-semibold">
                 <MessageSquare className="h-4 w-4" /> Feedback / Comment
               </label>
@@ -467,7 +560,7 @@ export default function LeaderProjectsPage() {
                 </Button>
                 {selected.status === "in-progress" && (
                   <Button
-                    className="gap-1.5 bg-[#33d6a6] text-white hover:bg-[#2abc8e] font-bold spring-press"
+                     className="gap-1.5 bg-[#33d6a6] text-white hover:bg-[#2abc8e] font-bold spring-press"
                     onClick={() => {
                       updateProjectStatus(selected.id, "completed", comment)
                       toast.success(`"${selected.title}" marked as completed!`)
@@ -489,6 +582,35 @@ export default function LeaderProjectsPage() {
           </DialogContent>
         )}
       </Dialog>
+      
+      {/* ── Link GitHub dialog ───────────────────────────────────────────── */}
+      <Dialog open={!!ghDialogProject} onOpenChange={(o) => !o && setGhDialogProject(null)}>
+        <DialogContent className="sm:max-w-sm" style={{ zIndex: 100 }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {GH_ICON} Link GitHub Repository
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={ghInputUrl}
+              onChange={(e) => setGhInputUrl(e.target.value)}
+              placeholder="https://github.com/username/repo"
+              onKeyDown={(e) => e.key === "Enter" && ghDialogProject && handleAddGithub(ghDialogProject)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Shows on the project card and public portfolio.
+            </p>
+            <Button
+              className="w-full bg-[#24292e] dark:bg-white/10 text-white dark:text-foreground hover:opacity-90 spring-press"
+              onClick={() => ghDialogProject && handleAddGithub(ghDialogProject)}
+            >
+              Save Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }
