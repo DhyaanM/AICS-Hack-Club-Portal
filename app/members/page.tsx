@@ -29,6 +29,8 @@ import {
   Mail,
   ExternalLink,
   ChevronRight,
+  Settings,
+  Palette,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
@@ -75,11 +77,17 @@ export default function MemberDashboard() {
   const { user: authUser } = useAuth()
   const {
     meetings, projects, leaveRequests, announcements, users,
-    invitations, acceptInvitation, declineInvitation, updateMemberTags,
+    invitations, acceptInvitation, declineInvitation, updateMemberTags, updateUserAccentColor
   } = useData()
   const [showWelcome, setShowWelcome] = useState(false)
+  const [themeOpen, setThemeOpen] = useState(false)
+  const [activeColor, setActiveColor] = useState("")
 
-  const user = users.find((u) => u.email === authUser?.email) || (authUser as User & { tags?: string[] })
+  const user = users.find((u) => u.email === authUser?.email) || (authUser as User & { tags?: string[], accent_color?: string })
+
+  useEffect(() => {
+    if (user?.accent_color && !activeColor) setActiveColor(user.accent_color)
+  }, [user?.accent_color])
 
   useEffect(() => {
     if (user?.tags?.includes("needs-tour")) setShowWelcome(true)
@@ -159,15 +167,29 @@ export default function MemberDashboard() {
     <div className="space-y-6">
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-[#338eda]/8 via-transparent to-[#a633d6]/8 p-6 animate-slide-up-fade">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/6 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/6 blur-3xl" />
+      <div 
+        className="relative overflow-hidden rounded-2xl border border-border/50 p-6 animate-slide-up-fade"
+        style={user.accent_color ? { 
+          background: `linear-gradient(135deg, ${user.accent_color}18, transparent, ${user.accent_color}08)`
+        } : { background: "linear-gradient(to bottom right, rgba(51, 142, 218, 0.08), transparent, rgba(166, 51, 214, 0.08))" }}
+      >
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-4 right-4 h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/50 z-10"
+          onClick={() => setThemeOpen(true)}
+        >
+          <Palette className="h-4 w-4" />
+        </Button>
+
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-3xl opacity-50" style={{ background: user.accent_color || "#338eda" }} />
+        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full blur-3xl opacity-30" style={{ background: user.accent_color || "#a633d6" }} />
         <div className="relative flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">
             <div
               className="h-[4.5rem] w-[4.5rem] rounded-2xl overflow-hidden border-2 border-white/10 shadow-lg"
-              style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+              style={{ background: user.accent_color ? `linear-gradient(135deg, ${user.accent_color}, ${user.accent_color}88)` : "linear-gradient(135deg, #338eda, #a633d6)" }}
             >
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
@@ -473,6 +495,79 @@ export default function MemberDashboard() {
             <Button variant="ghost" onClick={handleSkipTour}>Skip</Button>
             <Button className="bg-[#338eda] text-white hover:bg-[#2b78be] font-bold spring-press" onClick={handleStartTour}>
               Let's Go!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Theme Editor Dialog ────────────────────────────────────────────── */}
+      <Dialog open={themeOpen} onOpenChange={setThemeOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-4 w-4" /> Edit Profile Theme
+            </DialogTitle>
+            <DialogDescription>
+              Choose a custom accent color for your portfolio and dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-6 py-4">
+            <div 
+              className="h-24 w-24 rounded-full shadow-lg border-4 border-background"
+              style={{ 
+                background: activeColor 
+                  ? `linear-gradient(135deg, ${activeColor}, ${activeColor}88)` 
+                  : "linear-gradient(135deg, #338eda, #a633d6)" 
+              }}
+            />
+            
+            <div className="w-full space-y-3">
+              <label className="text-sm font-semibold">Custom Color</label>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="color" 
+                  value={activeColor || "#338eda"}
+                  onChange={(e) => setActiveColor(e.target.value)}
+                  className="h-10 w-14 rounded cursor-pointer border-0 p-0"
+                />
+                <input 
+                  type="text" 
+                  value={activeColor}
+                  onChange={(e) => setActiveColor(e.target.value)}
+                  placeholder="e.g. #ff0055"
+                  className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {["#ec3750", "#ff8c37", "#f1c40f", "#33d6a6", "#338eda", "#a633d6", "#8492a6", "#24292e"].map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setActiveColor(c)}
+                    className="h-6 w-6 rounded-full border border-border shadow-sm spring-press"
+                    style={{ background: c }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => { setActiveColor(""); } }
+              className="w-full sm:w-auto text-muted-foreground"
+            >
+              Reset to Default
+            </Button>
+            <Button 
+              className="w-full sm:w-auto bg-primary text-primary-foreground"
+              onClick={async () => {
+                if (updateUserAccentColor) {
+                  await updateUserAccentColor(user.id, activeColor);
+                }
+                setThemeOpen(false);
+              }}
+            >
+              Save Theme
             </Button>
           </DialogFooter>
         </DialogContent>
