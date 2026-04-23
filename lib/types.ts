@@ -11,7 +11,6 @@ export interface User {
   title?: string
   bio?: string
   theme_preference?: "light" | "dark" | "system"
-  accent_color?: string
 }
 
 export type AttendanceStatus = "present" | "absent" | "late" | "excused" | "n/a"

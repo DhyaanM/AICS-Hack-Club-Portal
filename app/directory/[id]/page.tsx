@@ -76,9 +76,7 @@ export default function DirectoryProfilePage() {
   const { percentage: attendancePct, attended, total: totalMeetings } = calculateAttendanceStats(profileUser.id, meetings)
   const streak = calculateStreak(profileUser.id, meetings)
 
-  const roleGradient = profileUser.accent_color
-    ? `linear-gradient(135deg, ${profileUser.accent_color}, ${profileUser.accent_color}88)`
-    : profileUser.role === "leader"
+  const roleGradient = profileUser.role === "leader"
     ? "linear-gradient(135deg, #ec3750, #ff8c37)"
     : "linear-gradient(135deg, #338eda, #a633d6)"
 

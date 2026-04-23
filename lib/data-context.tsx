@@ -217,7 +217,6 @@ interface DataContextValue {
   updateMemberTitle: (id: string, title: string) => Promise<void>
   updateMemberBio: (id: string, bio: string) => Promise<void>
   updateThemePreference: (id: string, theme: "light" | "dark" | "system") => Promise<void>
-  updateUserAccentColor: (id: string, color: string) => Promise<void>
 
   invitations: ProjectInvitation[]
   createInvitation: (projectId: string, inviteeId: string) => Promise<void>
@@ -596,10 +595,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await supabase.from("club_users").update({ theme_preference: theme }).eq("id", id)
   }, [])
 
-  const updateUserAccentColor = useCallback(async (id: string, color: string) => {
-    await supabase.from("club_users").update({ accent_color: color }).eq("id", id)
-  }, [])
-
   // ─── Meetings ─────────────────────────────────────────────────────────────
   const addMeeting = useCallback(async (meeting: Omit<Meeting, "id" | "attendance">) => {
     if (user?.role !== "leader") {
@@ -926,7 +921,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateMemberTitle,
         updateMemberBio,
         updateThemePreference,
-        updateUserAccentColor,
         invitations,
         createInvitation,
         acceptInvitation,
