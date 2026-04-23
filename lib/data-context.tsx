@@ -27,6 +27,59 @@ import { useAuth } from "./auth-context"
 
 const supabase = createClient()
 
+// ─── Signed URL Cache (sessionStorage, 55-min TTL) ────────────────────────────
+const AVATAR_CACHE_KEY = "avatar_url_cache"
+const AVATAR_TTL_MS = 55 * 60 * 1000
+
+interface AvatarCacheEntry { signedUrl: string; expiresAt: number }
+type AvatarCache = Record<string, AvatarCacheEntry>
+
+function readAvatarCache(): AvatarCache {
+  try { return JSON.parse(sessionStorage.getItem(AVATAR_CACHE_KEY) || "{}") } catch { return {} }
+}
+function writeAvatarCache(cache: AvatarCache) {
+  try { sessionStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(cache)) } catch {}
+}
+function getCachedUrl(path: string): string | null {
+  const e = readAvatarCache()[path]
+  return e && e.expiresAt > Date.now() ? e.signedUrl : null
+}
+function setCachedUrl(path: string, signedUrl: string) {
+  const cache = readAvatarCache()
+  cache[path] = { signedUrl, expiresAt: Date.now() + AVATAR_TTL_MS }
+  writeAvatarCache(cache)
+}
+
+/** Resolves signed URLs for multiple paths, using the cache where possible. */
+async function resolveSignedUrls(paths: string[]): Promise<Record<string, string>> {
+  const result: Record<string, string> = {}
+  const uncached: string[] = []
+  for (const p of paths) {
+    const hit = getCachedUrl(p)
+    if (hit) result[p] = hit
+    else uncached.push(p)
+  }
+  if (uncached.length > 0) {
+    const { data } = await supabase.storage.from("avatars").createSignedUrls(uncached, 3600)
+    for (const item of data ?? []) {
+      if (item.path) {
+        result[item.path] = item.signedUrl
+        setCachedUrl(item.path, item.signedUrl)
+      }
+    }
+  }
+  return result
+}
+
+/** Resolves a single signed URL, using the cache where possible. */
+async function resolveSignedUrl(path: string): Promise<string | null> {
+  const hit = getCachedUrl(path)
+  if (hit) return hit
+  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 3600)
+  if (data?.signedUrl) setCachedUrl(path, data.signedUrl)
+  return data?.signedUrl ?? null
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateId() {
   return Math.random().toString(36).slice(2, 10)
@@ -213,36 +266,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // ── Granular Fetchers ──────────────────────────────────────────────────
   const fetchUsers = useCallback(async () => {
-    const { data: usersData } = await supabase.from("club_users").select("*")
+    const { data: usersData } = await supabase
+      .from("club_users")
+      .select("id, name, email, role, join_date, tags, title, avatar, bio, theme_preference")
     const rawUsers = usersData ?? []
     const avatarPaths = rawUsers
       .map((u) => u.avatar)
       .filter((a): a is string => !!a && !a.startsWith("http"))
 
-    let signedUrls: any[] = []
-    if (avatarPaths.length > 0) {
-      const { data } = await supabase.storage
-        .from("avatars")
-        .createSignedUrls(avatarPaths, 3600)
-      signedUrls = data ?? []
-    }
+    // ✅ Use cache — only calls Supabase Storage for uncached paths
+    const signedMap = avatarPaths.length > 0 ? await resolveSignedUrls(avatarPaths) : {}
 
     const mappedUsers = rawUsers.map((row) => {
       const u = mapUser(row)
-      const signed = signedUrls.find((s) => s.path === u.avatar)
-      if (signed) u.avatar = signed.signedUrl
+      if (u.avatar && signedMap[u.avatar]) u.avatar = signedMap[u.avatar]
       return u
     })
     setUsers(mappedUsers)
   }, [])
 
   const fetchMeetings = useCallback(async () => {
-    const [{ data: meetingsData }, { data: attendanceData }] = await Promise.all([
-      supabase.from("meetings").select("*").order("date"),
-      supabase.from("attendance_records").select("*"),
-    ])
-    const att = attendanceData ?? []
-    setMeetings((meetingsData ?? []).map((r) => mapMeeting(r, att)))
+    // Fetch meetings first, then attendance only for those IDs (not all records ever)
+    const { data: meetingsData } = await supabase
+      .from("meetings")
+      .select("id, title, date, description")
+      .order("date")
+    const meetings = meetingsData ?? []
+    const meetingIds = meetings.map((m) => m.id)
+
+    let att: Record<string, unknown>[] = []
+    if (meetingIds.length > 0) {
+      const { data: attendanceData } = await supabase
+        .from("attendance_records")
+        .select("id, meeting_id, user_id, status")
+        .in("meeting_id", meetingIds)
+      att = attendanceData ?? []
+    }
+    setMeetings(meetings.map((r) => mapMeeting(r, att)))
   }, [])
 
   const fetchProjects = useCallback(async () => {
@@ -266,12 +326,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const fetchKudos = useCallback(async () => {
-    const { data } = await supabase.from("project_kudos").select("*")
+    const { data } = await supabase
+      .from("project_kudos")
+      .select("id, project_id, user_id, created_at")
     setKudos((data ?? []).map(mapKudo))
   }, [])
 
   const fetchInvitations = useCallback(async () => {
-    const { data } = await supabase.from("project_invitations").select("*")
+    const { data } = await supabase
+      .from("project_invitations")
+      .select("id, project_id, inviter_id, invitee_id, status, created_at")
     setInvitations((data ?? []).map(mapInvitation))
   }, [])
 
@@ -307,19 +371,146 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     fetchData()
 
-    // Real-time subscriptions — reload ONLY affected slice
-    const channels = [
-      supabase.channel("club_users_changes").on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, fetchUsers),
-      supabase.channel("meetings_changes").on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, fetchMeetings),
-      supabase.channel("attendance_changes").on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, fetchMeetings),
-      supabase.channel("projects_changes").on("postgres_changes", { event: "*", schema: "public", table: "projects" }, fetchProjects),
-      supabase.channel("leave_changes").on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, fetchLeaveRequests),
-      supabase.channel("reports_changes").on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, fetchReports),
-      supabase.channel("ann_changes").on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, fetchAnnouncements),
-      supabase.channel("kudos_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, fetchKudos),
-      supabase.channel("invitations_changes").on("postgres_changes", { event: "*", schema: "public", table: "project_invitations" }, fetchInvitations),
-    ]
+    // ✅ Real-time subscriptions – apply payload directly, NO extra DB queries
 
+    // Helper: upsert an item into an array by id
+    function upsert<T extends { id: string }>(arr: T[], item: T): T[] {
+      const idx = arr.findIndex((x) => x.id === item.id)
+      if (idx >= 0) { const next = [...arr]; next[idx] = item; return next }
+      return [...arr, item]
+    }
+
+    const usersChannel = supabase
+      .channel("club_users_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "club_users" }, async ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setUsers((prev) => prev.filter((u) => u.id !== old.id))
+        } else {
+          const u = mapUser(row)
+          // Resolve avatar from cache — no Storage API call if already cached
+          if (u.avatar && !u.avatar.startsWith("http")) {
+            const resolved = await resolveSignedUrl(u.avatar)
+            if (resolved) u.avatar = resolved
+          }
+          setUsers((prev) => upsert(prev, u))
+        }
+      })
+
+    const meetingsChannel = supabase
+      .channel("meetings_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setMeetings((prev) => prev.filter((m) => m.id !== old.id))
+        } else if (eventType === "INSERT") {
+          setMeetings((prev) => {
+            const meeting = mapMeeting(row, [])
+            return [...prev, meeting].sort((a, b) => a.date.localeCompare(b.date))
+          })
+        } else {
+          // UPDATE — keep existing attendance, just update metadata
+          setMeetings((prev) => prev.map((m) =>
+            m.id === row.id ? { ...mapMeeting(row, []), attendance: m.attendance } : m
+          ))
+        }
+      })
+
+    const attendanceChannel = supabase
+      .channel("attendance_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "attendance_records" }, ({ eventType, new: row, old }: any) => {
+        setMeetings((prev) => prev.map((meeting) => {
+          if (eventType === "DELETE") {
+            return { ...meeting, attendance: meeting.attendance.filter((a) => a.id !== old.id) }
+          }
+          if (meeting.id !== row.meeting_id) return meeting
+          const record = {
+            id: row.id as string,
+            meetingId: row.meeting_id as string,
+            userId: row.user_id as string,
+            status: row.status as AttendanceStatus,
+          }
+          const idx = meeting.attendance.findIndex((a) => a.id === record.id)
+          if (idx >= 0) {
+            const att = [...meeting.attendance]; att[idx] = record
+            return { ...meeting, attendance: att }
+          }
+          return { ...meeting, attendance: [...meeting.attendance, record] }
+        }))
+      })
+
+    const projectsChannel = supabase
+      .channel("projects_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setProjects((prev) => prev.filter((p) => p.id !== old.id))
+        } else {
+          const project = mapProject(row)
+          setProjects((prev) => {
+            const idx = prev.findIndex((p) => p.id === project.id)
+            if (idx >= 0) { const next = [...prev]; next[idx] = project; return next }
+            return [project, ...prev]
+          })
+        }
+      })
+
+    const leaveChannel = supabase
+      .channel("leave_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "leave_requests" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setLeaveRequests((prev) => prev.filter((r) => r.id !== old.id))
+        } else {
+          const req = mapLeaveRequest(row)
+          setLeaveRequests((prev) => upsert(prev, req))
+        }
+      })
+
+    const reportsChannel = supabase
+      .channel("reports_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "problem_reports" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setReports((prev) => prev.filter((r) => r.id !== old.id))
+        } else {
+          const report = mapReport(row)
+          setReports((prev) => upsert(prev, report))
+        }
+      })
+
+    const annChannel = supabase
+      .channel("ann_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setAnnouncements((prev) => prev.filter((a) => a.id !== old.id))
+        } else {
+          const ann = mapAnnouncement(row)
+          setAnnouncements((prev) => upsert(prev, ann))
+        }
+      })
+
+    const kudosChannel = supabase
+      .channel("kudos_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "project_kudos" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setKudos((prev) => prev.filter((k) => k.id !== old.id))
+        } else {
+          const kudo = mapKudo(row)
+          setKudos((prev) => upsert(prev, kudo))
+        }
+      })
+
+    const invChannel = supabase
+      .channel("invitations_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "project_invitations" }, ({ eventType, new: row, old }: any) => {
+        if (eventType === "DELETE") {
+          setInvitations((prev) => prev.filter((i) => i.id !== old.id))
+        } else {
+          const inv = mapInvitation(row)
+          setInvitations((prev) => upsert(prev, inv))
+        }
+      })
+
+    const channels = [
+      usersChannel, meetingsChannel, attendanceChannel, projectsChannel,
+      leaveChannel, reportsChannel, annChannel, kudosChannel, invChannel,
+    ]
     channels.forEach((c) => c.subscribe())
     return () => { channels.forEach((c) => supabase.removeChannel(c)) }
   }, [user, fetchData, fetchUsers, fetchMeetings, fetchProjects, fetchLeaveRequests, fetchReports, fetchAnnouncements, fetchKudos, fetchInvitations])

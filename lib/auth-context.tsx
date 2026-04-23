@@ -49,10 +49,28 @@ async function resolveClubUser(email: string, authId: string, supabase: ReturnTy
       }
 
       if (u.avatar && !u.avatar.startsWith("http")) {
-        const { data } = await supabase.storage
-          .from("avatars")
-          .createSignedUrl(u.avatar, 3600)
-        if (data) u.avatar = data.signedUrl
+        // ✅ Check sessionStorage cache before calling Supabase Storage
+        const CACHE_KEY = "avatar_url_cache"
+        const avatarPath = u.avatar // narrowed to string here
+        try {
+          const cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "{}")
+          const entry = cache[avatarPath]
+          if (entry && entry.expiresAt > Date.now()) {
+            u.avatar = entry.signedUrl
+          } else {
+            const { data } = await supabase.storage.from("avatars").createSignedUrl(avatarPath, 3600)
+            if (data?.signedUrl) {
+              // Write back to cache
+              cache[avatarPath] = { signedUrl: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 }
+              sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache))
+              u.avatar = data.signedUrl
+            }
+          }
+        } catch {
+          // sessionStorage unavailable (e.g. SSR/private browsing) — just fetch directly
+          const { data } = await supabase.storage.from("avatars").createSignedUrl(avatarPath, 3600)
+          if (data) u.avatar = data.signedUrl
+        }
       }
 
       return u
