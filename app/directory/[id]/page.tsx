@@ -85,7 +85,6 @@ export default function DirectoryProfilePage() {
   const isSupervisor = email === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
 
   const displayTitle = isSupervisor ? "Teacher Supervisor"
-    : profileUser.title ? profileUser.title
     : isFounder ? "Founder + President"
     : profileUser.role === "leader" ? "Club Leader" : "Club Member"
 
