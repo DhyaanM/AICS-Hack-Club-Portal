@@ -458,6 +458,8 @@ export default function MemberDashboard() {
         </CardContent>
       </Card>
 
+
+
       {/* ── Welcome Tour Dialog ──────────────────────────────────────────── */}
       <Dialog open={showWelcome} onOpenChange={(open) => { if (!open) handleSkipTour() }}>
         <DialogContent className="sm:max-w-md">

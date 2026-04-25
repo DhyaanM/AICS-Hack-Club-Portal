@@ -271,12 +271,17 @@ export function DashboardShell({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto flex flex-col relative">
           <div
             key={pathname}
-            className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="flex-1 mx-auto max-w-6xl w-full px-4 py-6 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
             {children}
+          </div>
+          
+          {/* Dashboard Footer Watermark */}
+          <div className="mt-auto border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} AICS Hack Club · Made with <span className="text-[#ec3750]">❤</span> by <span className="font-bold">Dhyaan Manganahalli</span>
           </div>
         </main>
       </div>

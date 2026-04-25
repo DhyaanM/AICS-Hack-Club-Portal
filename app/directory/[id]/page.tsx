@@ -228,7 +228,7 @@ export default function DirectoryProfilePage() {
             <span className="text-sm font-normal text-muted-foreground">({userProjects.length})</span>
           </h2>
           {githubProjects > 0 && (
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-[#24292e]/10 dark:bg-white/10 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-xs text-foreground bg-foreground/10 px-2.5 py-1 rounded-full">
               {GH_ICON} {githubProjects} on GitHub
             </span>
           )}
@@ -274,7 +274,7 @@ export default function DirectoryProfilePage() {
                         href={githubLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 w-fit rounded-full bg-[#24292e] dark:bg-white/10 text-white dark:text-foreground px-3 py-1.5 text-xs font-semibold transition-all hover:opacity-90 spring-press shadow-sm"
+                        className="flex items-center gap-2 w-fit rounded-full bg-foreground text-background px-3 py-1.5 text-xs font-semibold transition-all hover:opacity-90 spring-press shadow-sm"
                       >
                         {GH_ICON}
                         <span>{getRepoName(githubLink)}</span>

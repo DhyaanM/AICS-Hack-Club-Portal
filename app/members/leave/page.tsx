@@ -38,11 +38,9 @@ export default function LeavePage() {
   const [reason, setReason] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
-  // Upcoming meetings not yet requested
-  const today = new Date().toISOString().split("T")[0]
-  const upcoming = meetings.filter((m) => m.date >= today)
+  // Meetings not yet requested
   const alreadyRequested = new Set(myLeaves.map((l) => l.meetingId))
-  const available = upcoming.filter((m) => !alreadyRequested.has(m.id))
+  const available = meetings.filter((m) => !alreadyRequested.has(m.id))
 
   async function handleSubmit() {
     if (!meetingId) { toast.error("Please select a meeting."); return }
@@ -71,7 +69,7 @@ export default function LeavePage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-slide-right-fade">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Leave Requests</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Log absence in advance for upcoming meetings.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Log absence for meetings.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -99,7 +97,7 @@ export default function LeavePage() {
                   ))}
                 </select>
                 {available.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No upcoming meetings without a request.</p>
+                  <p className="text-xs text-muted-foreground">No meetings available for a leave request.</p>
                 )}
               </div>
               <div className="space-y-1.5">

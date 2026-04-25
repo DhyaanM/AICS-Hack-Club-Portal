@@ -385,7 +385,7 @@ export default function MemberProjectsPage() {
                             href={githubLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 rounded-full bg-[#24292e] dark:bg-white/10 text-white dark:text-foreground px-3 py-1 text-xs font-semibold transition-all hover:opacity-90 spring-press shadow-sm"
+                            className="flex items-center gap-1.5 rounded-full bg-foreground text-background px-3 py-1 text-xs font-semibold transition-all hover:opacity-90 spring-press shadow-sm"
                           >
                             {GH_ICON}
                             {getRepoName(githubLink)}
@@ -477,7 +477,7 @@ export default function MemberProjectsPage() {
                           href={githubLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 rounded-full bg-[#24292e] dark:bg-white/10 text-white dark:text-foreground px-3 py-1 text-xs font-semibold w-fit transition-all hover:opacity-90 spring-press shadow-sm"
+                          className="flex items-center gap-1.5 rounded-full bg-foreground text-background px-3 py-1 text-xs font-semibold w-fit transition-all hover:opacity-90 spring-press shadow-sm"
                         >
                           {GH_ICON}
                           {getRepoName(githubLink)}
@@ -537,7 +537,7 @@ export default function MemberProjectsPage() {
               Shows on your project card and public portfolio.
             </p>
             <Button
-              className="w-full bg-[#24292e] dark:bg-white/10 text-white dark:text-foreground hover:opacity-90 spring-press"
+              className="w-full bg-foreground text-background hover:opacity-90 spring-press"
               onClick={() => ghDialogProject && handleAddGithub(ghDialogProject)}
             >
               Save Link
