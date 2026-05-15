@@ -99,7 +99,7 @@ export function DashboardShell({
   }
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-sidebar">
+    <div className="flex h-full flex-col bg-sidebar bg-gradient-to-b from-sidebar to-sidebar-accent/30">
       {/* Brand */}
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
         <img
@@ -131,13 +131,13 @@ export function DashboardShell({
                 className={cn(
                   "animate-slide-in-left flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                   active
-                    ? "text-white shadow-sm"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    ? "text-white shadow-sm nav-pill-active"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground hover:translate-x-1"
                 )}
                 style={{
                   animationDelay: `${i * 40}ms`,
                   ...(active
-                    ? { background: roleGradient[role] }
+                    ? { background: roleGradient[role], "--nav-color": item.color } as React.CSSProperties
                     : {}),
                 }}
               >
@@ -272,16 +272,22 @@ export function DashboardShell({
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto flex flex-col relative">
+          {/* Parallax Orbs */}
+          <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+            <div className="animate-float absolute top-[-10%] left-[-5%] h-[40vh] w-[40vh] rounded-full opacity-[0.03] blur-3xl" style={{ background: roleGradient[role] }} />
+            <div className="animate-float-delayed absolute bottom-[-10%] right-[-5%] h-[50vh] w-[50vh] rounded-full opacity-[0.03] blur-3xl" style={{ background: roleGradient[role] }} />
+          </div>
+
           <div
             key={pathname}
-            className="flex-1 mx-auto max-w-6xl w-full px-4 py-6 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="flex-1 mx-auto max-w-6xl w-full px-4 py-6 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10"
           >
             {children}
           </div>
           
           {/* Dashboard Footer Watermark */}
-          <div className="mt-auto border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} AICS Hack Club · Made with <span className="text-[#ec3750]">❤</span> by <span className="font-bold">Dhyaan Manganahalli</span>
+          <div className="mt-auto border-t border-border/40 py-6 text-center text-xs text-muted-foreground relative z-10">
+            © {new Date().getFullYear()} AICS Hack Club · Made with <span className="text-[#ec3750] animate-pulse">❤</span> by <span className="font-bold text-gradient-shimmer">Dhyaan Manganahalli</span>
           </div>
         </main>
       </div>

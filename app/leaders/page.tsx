@@ -27,6 +27,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts"
+import { VanillaTiltWrapper } from "@/components/vanilla-tilt-wrapper"
 
 const STATUS_COLORS: Record<string, string> = {
   proposed: "#f1c40f",
@@ -101,9 +102,10 @@ export default function LeadersDashboard() {
     <div className="space-y-6">
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#ff8c37]/20 bg-gradient-to-br from-[#ff8c37]/8 via-transparent to-[#ec3750]/5 p-6 animate-slide-up-fade">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#ff8c37]/8 blur-3xl" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="relative overflow-hidden rounded-2xl border border-[#ff8c37]/20 bg-gradient-to-br from-[#ff8c37]/15 via-transparent to-[#ec3750]/10 p-6 animate-slide-up-fade animate-gradient-border shadow-xl shadow-[#ff8c37]/10">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#ff8c37]/15 blur-3xl animate-float" />
+        <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-[#ec3750]/15 blur-3xl animate-float-delayed" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ff8c37]/15 border border-[#ff8c37]/30 text-[#ff8c37] px-2.5 py-0.5 text-xs font-bold">
@@ -118,21 +120,22 @@ export default function LeadersDashboard() {
 
           {/* Quick action shortcut grid */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {QUICK_ACTIONS.map((qa) => (
-              <Link
-                key={qa.href}
-                href={qa.href}
-                className="flex flex-col items-center gap-1 rounded-xl p-2.5 border border-transparent hover:border-border/60 hover:bg-card transition-all spring-press group"
-                style={{ minWidth: "3.5rem" }}
-              >
-                <div
-                  className="h-8 w-8 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
-                  style={{ background: qa.color + "18" }}
+            {QUICK_ACTIONS.map((qa, idx) => (
+              <VanillaTiltWrapper key={qa.href} options={{ max: 15, scale: 1.05, speed: 400, glare: true, "max-glare": 0.2 }}>
+                <Link
+                  href={qa.href}
+                  className={`depth-${Math.min(idx + 1, 5)} animate-slide-up-fade flex flex-col items-center gap-1 rounded-xl p-2.5 border border-transparent hover:border-border/60 hover:bg-card hover-glow transition-all spring-press group`}
+                  style={{ minWidth: "3.5rem", "--hover-color": `${qa.color}44` } as React.CSSProperties}
                 >
-                  <qa.icon className="h-4 w-4" style={{ color: qa.color }} />
-                </div>
-                <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{qa.label}</span>
-              </Link>
+                  <div
+                    className="h-8 w-8 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
+                    style={{ background: qa.color + "18" }}
+                  >
+                    <qa.icon className="h-4 w-4" style={{ color: qa.color }} />
+                  </div>
+                  <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{qa.label}</span>
+                </Link>
+              </VanillaTiltWrapper>
             ))}
           </div>
         </div>
@@ -153,7 +156,7 @@ export default function LeadersDashboard() {
         style={{ animationFillMode: "both" }}
       >
         {/* Attendance Chart */}
-        <Card className="border-border/60 bg-card">
+        <Card className="border-border/60 glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-4 w-4 text-[#33d6a6]" />
@@ -213,8 +216,8 @@ export default function LeadersDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-2">
-                  {pendingProjects.slice(0, 3).map((p) => (
-                    <div key={p.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3 spring-hover-sm hover:border-[#f1c40f]/30 transition-colors">
+                  {pendingProjects.slice(0, 3).map((p, idx) => (
+                    <div key={p.id} className={`depth-${Math.min(idx + 1, 5)} animate-slide-up-fade flex items-center justify-between rounded-xl border border-border/50 p-3 spring-hover-sm hover:border-[#f1c40f]/50 neon-pulse-left transition-colors`} style={{ "--hc-orange": "#f1c40f" } as React.CSSProperties}>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-card-foreground truncate">{p.title}</p>
                         <p className="text-xs text-muted-foreground">{p.category}</p>
@@ -241,8 +244,8 @@ export default function LeadersDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-2">
-                  {openReports.slice(0, 3).map((r) => (
-                    <div key={r.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3 spring-hover-sm hover:border-[#ec3750]/30 transition-colors">
+                  {openReports.slice(0, 3).map((r, idx) => (
+                    <div key={r.id} className={`depth-${Math.min(idx + 1, 5)} animate-slide-up-fade flex items-center justify-between rounded-xl border border-border/50 p-3 spring-hover-sm hover:border-[#ec3750]/50 neon-pulse-left transition-colors`} style={{ "--hc-orange": "#ec3750" } as React.CSSProperties}>
                       <p className="text-sm font-semibold text-card-foreground truncate">{r.title}</p>
                       <Badge
                         variant="secondary"
@@ -267,8 +270,8 @@ export default function LeadersDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-2">
-                  {pendingLeaves.slice(0, 3).map((l) => (
-                    <div key={l.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3 spring-hover-sm hover:border-[#ff8c37]/30 transition-colors">
+                  {pendingLeaves.slice(0, 3).map((l, idx) => (
+                    <div key={l.id} className={`depth-${Math.min(idx + 1, 5)} animate-slide-up-fade flex items-center justify-between rounded-xl border border-border/50 p-3 spring-hover-sm hover:border-[#ff8c37]/50 neon-pulse-left transition-colors`} style={{ "--hc-orange": "#ff8c37" } as React.CSSProperties}>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-card-foreground">
                           {users.find((u) => u.id === l.userId)?.name || "Member"}

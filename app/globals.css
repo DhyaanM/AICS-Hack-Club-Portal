@@ -490,3 +490,106 @@
   animation: profile-ping 2.5s ease-out infinite;
 }
 
+
+/* ===== Parallax Orbs & New Portal Animations ===== */
+
+/* Scroll-based depth staggers */
+.depth-1 { animation-delay: 50ms; }
+.depth-2 { animation-delay: 100ms; }
+.depth-3 { animation-delay: 150ms; }
+.depth-4 { animation-delay: 200ms; }
+.depth-5 { animation-delay: 250ms; }
+
+/* Gradient Border Shimmer for Heroes */
+.animate-gradient-border {
+  background-size: 200% 200%;
+  animation: bg-gradient-sweep 4s ease infinite;
+}
+@keyframes bg-gradient-sweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Neon Pulse for Pinned / Active */
+.neon-pulse-left {
+  position: relative;
+}
+.neon-pulse-left::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 10%;
+  bottom: 10%;
+  width: 4px;
+  background: var(--hc-orange);
+  border-radius: 4px;
+  box-shadow: 0 0 10px var(--hc-orange);
+  animation: neon-flicker 2s infinite alternate;
+}
+@keyframes neon-flicker {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; box-shadow: 0 0 15px var(--hc-orange); }
+}
+
+/* Gradient text shimmer */
+.text-gradient-shimmer {
+  background: linear-gradient(90deg, var(--hc-red), var(--hc-orange), var(--hc-red));
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gradient-shimmer 3s linear infinite;
+}
+@keyframes gradient-shimmer {
+  to { background-position: 200% center; }
+}
+
+/* Hover glow for stat cards - dynamically set via style */
+.hover-glow {
+  transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.hover-glow:hover {
+  box-shadow: 0 10px 40px -10px var(--hover-color, rgba(0,0,0,0.2));
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(var(--card), 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.dark .glass-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Sidebar nav pill glow */
+.nav-pill-active {
+  position: relative;
+}
+.nav-pill-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px -5px var(--nav-color);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+/* Progress bar fill animation */
+@keyframes progress-fill {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: var(--target-offset, 0); }
+}
+.animate-progress {
+  animation: progress-fill 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Vanilla tilt specific smooth transitions */
+.js-tilt-glare {
+  border-radius: inherit;
+}

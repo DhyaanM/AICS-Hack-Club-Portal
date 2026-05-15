@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import { useState, useEffect } from "react"
 import type { User } from "@/lib/types"
+import { VanillaTiltWrapper } from "@/components/vanilla-tilt-wrapper"
 
 // ─── GitHub helpers (same as projects page) ───────────────────────────────────
 function isGitHubUrl(url: string) { return url.toLowerCase().includes("github.com") }
@@ -159,9 +160,9 @@ export default function MemberDashboard() {
     <div className="space-y-6">
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-[#338eda]/8 via-transparent to-[#a633d6]/8 p-6 animate-slide-up-fade">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/6 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/6 blur-3xl" />
+      <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-[#338eda]/15 via-transparent to-[#a633d6]/15 p-6 animate-slide-up-fade shadow-xl animate-gradient-border shadow-[#338eda]/10">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/10 blur-3xl animate-float" />
+        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/10 blur-3xl animate-float-delayed" />
         <div className="relative flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">
@@ -249,7 +250,7 @@ export default function MemberDashboard() {
           {sortedAnnouncements.map((ann) => (
             <div
               key={ann.id}
-              className="flex items-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 transition-all hover:border-border"
+              className={`flex items-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 transition-all hover:border-border hover:translate-x-1 ${ann.pinned ? 'neon-pulse-left' : ''}`}
               style={ann.pinned ? { borderLeftWidth: "3px", borderLeftColor: "#ff8c37" } : {}}
             >
               <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ background: "#ff8c3718" }}>
@@ -317,35 +318,38 @@ export default function MemberDashboard() {
                 const color = STATUS_COLORS[p.status]
                 const githubLink = p.links?.find(isGitHubUrl)
                 return (
-                  <div
-                    key={p.id}
-                    className="group flex items-center justify-between rounded-xl border border-border/50 p-3 transition-all hover:border-border hover:bg-muted/20"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-card-foreground truncate">{p.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-xs text-muted-foreground">{p.category}</p>
-                        {githubLink && (
-                          <a
-                            href={githubLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {GH_ICON} {getRepoName(githubLink)}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className="shrink-0 text-xs capitalize ml-2"
-                      style={{ background: color + "18", color, border: `1px solid ${color}33` }}
+                  <VanillaTiltWrapper key={p.id} options={{ max: 5, scale: 1.02, speed: 400, glare: true, "max-glare": 0.05 }}>
+                    <div
+                      className="group flex items-center justify-between rounded-xl border border-border/50 p-3 transition-all hover:border-border hover:bg-muted/20 hover:shadow-lg relative overflow-hidden"
+                      style={{ borderLeft: `3px solid ${color}` }}
                     >
-                      {STATUS_LABELS[p.status]}
-                    </Badge>
-                  </div>
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style={{ background: color }} />
+                      <div className="flex-1 min-w-0 relative z-10">
+                        <p className="text-sm font-semibold text-card-foreground truncate">{p.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-muted-foreground">{p.category}</p>
+                          {githubLink && (
+                            <a
+                              href={githubLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {GH_ICON} {getRepoName(githubLink)}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 text-xs capitalize ml-2 relative z-10"
+                        style={{ background: color + "18", color, border: `1px solid ${color}33` }}
+                      >
+                        {STATUS_LABELS[p.status]}
+                      </Badge>
+                    </div>
+                  </VanillaTiltWrapper>
                 )
               })
             )}
@@ -380,37 +384,39 @@ export default function MemberDashboard() {
               leaderboard.map((entry, idx) => {
                 const isMe = entry.user.id === user.id
                 return (
-                  <Link
-                    key={entry.user.id}
-                    href={`/directory/${entry.user.id}`}
-                    className={`animate-slide-up-fade stagger-${Math.min(idx + 1, 8)} flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:scale-[1.015] active:scale-[0.99] ${
-                      isMe
-                        ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30"
-                        : "border border-border/40 hover:bg-muted/20"
-                    }`}
-                  >
-                    <span className="text-base w-6 text-center select-none">
-                      {STREAK_RANK_EMOJIS[entry.rank] ?? `${entry.rank + 1}.`}
-                    </span>
-                    {/* Mini avatar */}
-                    <div
-                      className="h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center text-white text-[10px] font-black shrink-0"
-                      style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                  <VanillaTiltWrapper key={entry.user.id} options={{ max: 5, scale: 1.02, speed: 400 }}>
+                    <Link
+                      href={`/directory/${entry.user.id}`}
+                      className={`depth-${Math.min(idx + 1, 5)} animate-slide-up-fade flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all active:scale-[0.99] ${
+                        isMe
+                          ? "bg-[#ff8c37]/10 border border-[#ff8c37]/30 hover-glow"
+                          : "border border-border/40 hover:bg-muted/20 hover:shadow-md"
+                      }`}
+                      style={isMe ? { "--hover-color": "#ff8c3744" } as React.CSSProperties : {}}
                     >
-                      {entry.user.avatar
-                        ? <img src={entry.user.avatar} alt={entry.user.name} className="h-full w-full object-cover" />
-                        : initials(entry.user.name)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-semibold truncate ${isMe ? "text-[#ff8c37]" : "text-foreground"}`}>
-                        {entry.user.name}{isMe && " (you)"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Flame className="h-4 w-4 text-[#ff8c37] hover:animate-shake" />
-                      <span className="text-sm font-bold text-[#ff8c37]">{entry.streak}</span>
-                    </div>
-                  </Link>
+                      <span className="text-base w-6 text-center select-none animate-badge-enter" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
+                        {STREAK_RANK_EMOJIS[entry.rank] ?? `${entry.rank + 1}.`}
+                      </span>
+                      {/* Mini avatar */}
+                      <div
+                        className="h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center text-white text-[10px] font-black shrink-0"
+                        style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                      >
+                        {entry.user.avatar
+                          ? <img src={entry.user.avatar} alt={entry.user.name} className="h-full w-full object-cover" />
+                          : initials(entry.user.name)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold truncate ${isMe ? "text-[#ff8c37]" : "text-foreground"}`}>
+                          {entry.user.name}{isMe && " (you)"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 group">
+                        <Flame className="h-4 w-4 text-[#ff8c37] transition-transform group-hover:animate-shake group-hover:scale-125" />
+                        <span className="text-sm font-bold text-[#ff8c37]">{entry.streak}</span>
+                      </div>
+                    </Link>
+                  </VanillaTiltWrapper>
                 )
               })
             )}
