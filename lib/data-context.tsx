@@ -563,7 +563,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const updateMemberAvatar = useCallback(async (id: string, avatar: string) => {
-    if (user?.role !== "leader") {
+    if (user?.role !== "leader" && user?.id !== id) {
       console.error("Unauthorized: only leaders can update member avatars")
       return
     }
