@@ -91,7 +91,7 @@ export function DashboardShell({
 
   const isSupervisor = user.email?.toLowerCase() === process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase()
   const rawNav = role === "leader" ? leaderNav : memberNav
-  const nav = isSupervisor ? rawNav.filter(item => item.href !== "/settings") : rawNav
+  const nav = rawNav
 
   function handleLogout() {
     logout()
