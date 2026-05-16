@@ -16,6 +16,8 @@ const STATUS_COLORS: Record<string, string> = {
   "n/a": "#8492a6",
 }
 
+import { cn } from "@/lib/utils"
+
 export default function MemberAttendancePage() {
   const { user } = useAuth()
   const { meetings } = useData()
@@ -33,8 +35,10 @@ export default function MemberAttendancePage() {
   const offset = circumference - (pct / 100) * circumference
   const ringColor = pct >= 80 ? "#33d6a6" : pct >= 60 ? "#f1c40f" : "#ec3750"
 
+  const hasAttendanceDanger = user?.tags?.includes("danger-zone:attendance")
+
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", hasAttendanceDanger && "p-4 rounded-xl border-4 border-[#ec3750] animate-pulse bg-[#ec3750]/10 danger-glow")}>
       <div>
         <h1 className="text-2xl font-bold text-foreground">My Attendance</h1>
         <p className="mt-1 text-sm text-muted-foreground">Your attendance history and statistics.</p>
@@ -43,7 +47,7 @@ export default function MemberAttendancePage() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         {/* Ring */}
-        <Card className="border-border/60 bg-card sm:col-span-1 flex items-center justify-center p-6">
+        <Card className={cn("border-border/60 bg-card sm:col-span-1 flex items-center justify-center p-6", hasAttendanceDanger && "border-[#ec3750] bg-red-950/40")}>
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               <svg width="120" height="120" viewBox="0 0 120 120">
@@ -71,7 +75,7 @@ export default function MemberAttendancePage() {
         </Card>
 
         {/* Quick stats */}
-        <Card className="border-border/60 bg-card sm:col-span-2">
+        <Card className={cn("border-border/60 bg-card sm:col-span-2", hasAttendanceDanger && "border-[#ec3750] bg-red-950/40")}>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-4 w-4" style={{ color: "#338eda" }} />
@@ -98,7 +102,7 @@ export default function MemberAttendancePage() {
       </div>
 
       {/* History */}
-      <Card className="border-border/60 bg-card">
+      <Card className={cn("border-border/60 bg-card", hasAttendanceDanger && "border-[#ec3750] bg-red-950/40")}>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <CalendarCheck className="h-4 w-4" style={{ color: "#33d6a6" }} />

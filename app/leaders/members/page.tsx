@@ -15,11 +15,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map, AlertOctagon } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map, AlertOctagon, Flag } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import type { User } from "@/lib/types"
 import { VanillaTiltWrapper } from "@/components/vanilla-tilt-wrapper"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const ROLE_COLOR = { leader: "#ec3750", member: "#338eda" }
 const TAG_COLORS = [
@@ -56,6 +57,8 @@ export default function MembersPage() {
   const [editAvatar, setEditAvatar] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [removeId, setRemoveId] = useState<string | null>(null)
+  const [dangerZoneMemberId, setDangerZoneMemberId] = useState<string | null>(null)
+  const [dangerReasons, setDangerReasons] = useState({ attendance: false, projects: false, conduct: false })
 
   const members = users.filter((u) => u.email?.toLowerCase() !== process.env.NEXT_PUBLIC_SUPERVISOR_EMAIL?.toLowerCase())
   const filtered = members.filter(
@@ -140,14 +143,34 @@ export default function MembersPage() {
   }
 
   async function handleToggleDangerZone(memberTarget: User) {
-    const isDanger = memberTarget.tags?.includes("danger-zone")
+    const isDanger = memberTarget.tags?.some(t => t.startsWith("danger-zone"))
     if (isDanger) {
-      await updateMemberTags(memberTarget.id, memberTarget.tags.filter(t => t !== "danger-zone"))
+      await updateMemberTags(memberTarget.id, memberTarget.tags.filter(t => !t.startsWith("danger-zone")))
       toast.success(`${memberTarget.name} removed from Danger Zone.`)
     } else {
-      await updateMemberTags(memberTarget.id, [...(memberTarget.tags || []), "danger-zone"])
-      toast.error(`${memberTarget.name} placed in Danger Zone!`, { icon: '⚠️' })
+      setDangerZoneMemberId(memberTarget.id)
+      setDangerReasons({ attendance: false, projects: false, conduct: false })
     }
+  }
+
+  async function handleApplyDangerZone() {
+    if (!dangerZoneMemberId) return
+    const memberTarget = users.find(u => u.id === dangerZoneMemberId)
+    if (!memberTarget) return
+
+    const newTags = [...(memberTarget.tags || []).filter(t => !t.startsWith("danger-zone"))]
+    if (dangerReasons.attendance) newTags.push("danger-zone:attendance")
+    if (dangerReasons.projects) newTags.push("danger-zone:projects")
+    if (dangerReasons.conduct) newTags.push("danger-zone:conduct")
+
+    if (dangerReasons.attendance || dangerReasons.projects || dangerReasons.conduct) {
+      await updateMemberTags(dangerZoneMemberId, newTags)
+      toast.error(`${memberTarget.name} placed in Danger Zone!`, { icon: '⚠️' })
+    } else {
+      toast.error("Please select at least one reason.")
+      return
+    }
+    setDangerZoneMemberId(null)
   }
 
   return (
@@ -221,7 +244,7 @@ export default function MembersPage() {
                     <div
                       className={cn(
                         "flex items-center gap-4 px-5 py-4 transition-colors border-l-4",
-                        member.tags?.includes("danger-zone") ? "border-l-[#f1c40f] bg-red-900/10 hover:bg-red-900/20" : "border-l-transparent hover:bg-muted/30"
+                        member.tags?.some(t => t.startsWith("danger-zone")) ? "border-l-[#f1c40f] bg-red-900/10 hover:bg-red-900/20" : "border-l-transparent hover:bg-muted/30"
                       )}
                     >
                     {/* Avatar */}
@@ -240,8 +263,13 @@ export default function MembersPage() {
                         })()}
                       </div>
                       {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(member.email?.toLowerCase() || "") && (
-                        <div className="absolute -right-1 -top-1.5 rotate-[25deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                        <div className="absolute -right-1 -top-1.5 rotate-[25deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] z-10">
                           <Crown className="h-4 w-4 fill-yellow-400 text-yellow-600" />
+                        </div>
+                      )}
+                      {member.tags?.some(t => t.startsWith("danger-zone")) && (
+                        <div className="absolute -left-1.5 -bottom-1.5 -rotate-[15deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] z-10 animate-pulse">
+                          <Flag className="h-5 w-5 fill-[#ec3750] text-[#8b0000]" />
                         </div>
                       )}
                     </div>
@@ -275,15 +303,24 @@ export default function MembersPage() {
                       </div>
                       {member.tags && member.tags.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {member.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                              style={{ background: tagColor(tag) + "18", color: tagColor(tag) }}
-                            >
-                              {tag}
-                            </span>
-                          ))}
+                          {member.tags.map((tag) => {
+                            let displayName = tag
+                            let isDanger = false
+                            if (tag === "danger-zone:attendance") { displayName = "Danger Zone: Zero Attendance"; isDanger = true }
+                            else if (tag === "danger-zone:projects") { displayName = "Danger Zone: No Projects"; isDanger = true }
+                            else if (tag === "danger-zone:conduct") { displayName = "Danger Zone: Conduct"; isDanger = true }
+                            else if (tag === "danger-zone") { displayName = "Danger Zone"; isDanger = true }
+
+                            return (
+                              <span
+                                key={tag}
+                                className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", isDanger ? "bg-[#ec3750]/20 text-[#ec3750] border border-[#ec3750]/30 animate-pulse" : "")}
+                                style={isDanger ? {} : { background: tagColor(tag) + "18", color: tagColor(tag) }}
+                              >
+                                {displayName}
+                              </span>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
@@ -330,12 +367,12 @@ export default function MembersPage() {
                         size="icon"
                         className={cn(
                           "h-8 w-8 transition-colors",
-                          member.tags?.includes("danger-zone") 
+                          member.tags?.some(t => t.startsWith("danger-zone")) 
                             ? "text-[#f1c40f] bg-[#ec3750]/20 hover:bg-[#ec3750]/30 animate-pulse" 
                             : "text-muted-foreground hover:text-[#ec3750]"
                         )}
                         onClick={() => handleToggleDangerZone(member)}
-                        title={member.tags?.includes("danger-zone") ? "Remove from Danger Zone" : "Place in Danger Zone"}
+                        title={member.tags?.some(t => t.startsWith("danger-zone")) ? "Remove from Danger Zone" : "Place in Danger Zone"}
                       >
                         <AlertOctagon className="h-4 w-4" />
                       </Button>
@@ -476,6 +513,39 @@ export default function MembersPage() {
           )}
         </CardContent>
       </Card>
+      {/* Danger Zone Dialog */}
+      <Dialog open={!!dangerZoneMemberId} onOpenChange={(o) => !o && setDangerZoneMemberId(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-[#ec3750] flex items-center gap-2">
+              <AlertOctagon className="h-5 w-5" /> Danger Zone
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-muted-foreground">Select the reasons for placing this member in the Danger Zone:</p>
+            <div className="space-y-3 p-3 bg-muted/30 rounded-xl border border-border/50">
+              <label className="flex items-center gap-3 text-sm font-medium cursor-pointer">
+                <Checkbox checked={dangerReasons.attendance} onCheckedChange={(c) => setDangerReasons(p => ({...p, attendance: !!c}))} />
+                Zero Attendance
+              </label>
+              <label className="flex items-center gap-3 text-sm font-medium cursor-pointer">
+                <Checkbox checked={dangerReasons.projects} onCheckedChange={(c) => setDangerReasons(p => ({...p, projects: !!c}))} />
+                No Active Projects
+              </label>
+              <label className="flex items-center gap-3 text-sm font-medium cursor-pointer">
+                <Checkbox checked={dangerReasons.conduct} onCheckedChange={(c) => setDangerReasons(p => ({...p, conduct: !!c}))} />
+                Disorderly Conduct
+              </label>
+            </div>
+            <Button
+              className="w-full bg-[#ec3750] text-white hover:bg-[#d42d42] spring-press font-bold"
+              onClick={handleApplyDangerZone}
+            >
+              Apply Danger Zone
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

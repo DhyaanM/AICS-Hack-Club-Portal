@@ -157,23 +157,12 @@ export default function MemberDashboard() {
   }
   const leaderboard = leaderboardFull.slice(0, 5)
   const myInvitations = invitations.filter((inv) => inv.inviteeId === user.id && inv.status === "pending")
-  const isDangerZone = user.tags?.includes("danger-zone")
+  const isDangerZone = user.tags?.some(t => t.startsWith("danger-zone")) || user.tags?.includes("danger-zone")
+  const hasAttendanceDanger = user.tags?.includes("danger-zone:attendance")
+  const hasProjectDanger = user.tags?.includes("danger-zone:projects")
 
   return (
-    <div className={cn("space-y-6", isDangerZone && "bg-red-950/10 -mx-4 sm:-mx-8 -mt-4 p-4 sm:p-8 rounded-3xl border border-[#ec3750]/20 min-h-screen")}>
-
-      {isDangerZone && (
-        <div className="bg-construction-tape p-1.5 rounded-2xl mb-2 shadow-[0_0_20px_rgba(241,196,15,0.4)] animate-continuous-shake">
-          <div className="bg-[#ec3750] text-white p-4 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
-            <AlertTriangle className="h-8 w-8 animate-pulse hidden sm:block" />
-            <div className="flex flex-col">
-              <span className="font-black uppercase tracking-widest text-lg sm:text-xl drop-shadow-md">⚠️ DANGER ZONE ⚠️</span>
-              <span className="text-xs sm:text-sm font-bold opacity-90 mt-0.5">Your club standing is at risk due to inactivity or misbehavior. Speak to a club leader immediately.</span>
-            </div>
-            <AlertTriangle className="h-8 w-8 animate-pulse hidden sm:block" />
-          </div>
-        </div>
-      )}
+    <div className="space-y-6">
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
       <div className={cn("relative overflow-hidden rounded-2xl p-6 shadow-xl",
@@ -215,14 +204,14 @@ export default function MemberDashboard() {
               {(user.name || "Member").split(" ")[0]} 👋
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <CalendarCheck className="h-3.5 w-3.5 text-[#33d6a6]" />
-                <span className="font-semibold text-foreground">{attendancePct}%</span> attendance
+              <span className={cn("flex items-center gap-1", hasAttendanceDanger && "text-[#ec3750] animate-pulse font-bold danger-glow bg-red-900/20 px-2 py-0.5 rounded-md")}>
+                <CalendarCheck className={cn("h-3.5 w-3.5", hasAttendanceDanger ? "text-[#ec3750]" : "text-[#33d6a6]")} />
+                <span className={cn("font-semibold", hasAttendanceDanger ? "text-[#ec3750]" : "text-foreground")}>{attendancePct}%</span> attendance
               </span>
               <span className="text-border">·</span>
-              <span className="flex items-center gap-1">
-                <FolderKanban className="h-3.5 w-3.5 text-[#338eda]" />
-                <span className="font-semibold text-foreground">{activeProjects.length}</span> active project{activeProjects.length !== 1 ? "s" : ""}
+              <span className={cn("flex items-center gap-1", hasProjectDanger && "text-[#ec3750] animate-pulse font-bold danger-glow bg-red-900/20 px-2 py-0.5 rounded-md")}>
+                <FolderKanban className={cn("h-3.5 w-3.5", hasProjectDanger ? "text-[#ec3750]" : "text-[#338eda]")} />
+                <span className={cn("font-semibold", hasProjectDanger ? "text-[#ec3750]" : "text-foreground")}>{activeProjects.length}</span> active project{activeProjects.length !== 1 ? "s" : ""}
               </span>
               {streak > 0 && (
                 <>

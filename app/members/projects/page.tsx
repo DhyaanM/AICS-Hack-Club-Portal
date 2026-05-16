@@ -25,8 +25,8 @@ import {
 import { toast } from "sonner"
 import { FolderKanban, Plus, ExternalLink, MessageSquare, Check, Globe, Sparkles } from "lucide-react"
 import type { ProjectStatus } from "@/lib/types"
-// @ts-ignore
 import confetti from "canvas-confetti"
+import { cn } from "@/lib/utils"
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
   proposed: "#f1c40f",
@@ -176,8 +176,10 @@ export default function MemberProjectsPage() {
     setGhInputUrl("")
   }
 
+  const hasProjectDanger = user?.tags?.includes("danger-zone:projects")
+
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", hasProjectDanger && "p-4 rounded-xl border-4 border-[#ec3750] animate-pulse bg-[#ec3750]/10 danger-glow")}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-scale-up-fade">
         <div>
