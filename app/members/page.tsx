@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useData } from "@/lib/data-context"
 import { StatCard } from "@/components/dashboard/stat-card"
+import { ParallaxBanner } from "@/components/animate/parallax-banner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -161,71 +162,87 @@ export default function MemberDashboard() {
   const hasAttendanceDanger = user.tags?.includes("danger-zone:attendance")
   const hasProjectDanger = user.tags?.includes("danger-zone:projects")
 
-  return (
-    <div className="space-y-6">
-
-      {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className={cn("relative overflow-hidden rounded-2xl p-6 shadow-xl",
-        isDangerZone 
-          ? "border-2 border-[#ec3750] bg-red-950/20 danger-glow" 
-          : "border border-border/50 bg-gradient-to-br from-[#338eda]/15 via-transparent to-[#a633d6]/15 animate-slide-up-fade animate-gradient-border shadow-[#338eda]/10"
-      )}>
-        {!isDangerZone && (
-          <>
-            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/10 blur-3xl animate-float" />
-            <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/10 blur-3xl animate-float-delayed" />
-          </>
+  const heroContent = (
+    <div className="relative flex items-center gap-5">
+      {/* Avatar */}
+      <div className="relative shrink-0">
+        <div
+          className="h-[4.5rem] w-[4.5rem] rounded-2xl overflow-hidden border-2 border-white/10 shadow-lg"
+          style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+        >
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center text-white text-2xl font-black">
+              {initials(user.name)}
+            </div>
+          )}
+        </div>
+        {streak > 0 && (
+          <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5 bg-[#ff8c37] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-md border-2 border-background">
+            <Flame className="h-2.5 w-2.5" />{streak}
+          </div>
         )}
-        <div className="relative flex items-center gap-5">
-          {/* Avatar */}
-          <div className="relative shrink-0">
-            <div
-              className="h-[4.5rem] w-[4.5rem] rounded-2xl overflow-hidden border-2 border-white/10 shadow-lg"
-              style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
-            >
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-white text-2xl font-black">
-                  {initials(user.name)}
-                </div>
-              )}
-            </div>
-            {streak > 0 && (
-              <div className="absolute -bottom-2 -right-2 flex items-center gap-0.5 bg-[#ff8c37] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-md border-2 border-background">
-                <Flame className="h-2.5 w-2.5" />{streak}
-              </div>
-            )}
-          </div>
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Welcome back</p>
-            <h1 className="text-2xl font-black text-foreground tracking-tight">
-              {(user.name || "Member").split(" ")[0]} 👋
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
-              <span className={cn("flex items-center gap-1", hasAttendanceDanger && "text-[#ec3750] animate-pulse font-bold danger-glow bg-red-900/20 px-2 py-0.5 rounded-md")}>
-                <CalendarCheck className={cn("h-3.5 w-3.5", hasAttendanceDanger ? "text-[#ec3750]" : "text-[#33d6a6]")} />
-                <span className={cn("font-semibold", hasAttendanceDanger ? "text-[#ec3750]" : "text-foreground")}>{attendancePct}%</span> attendance
-              </span>
+      </div>
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Welcome back</p>
+        <h1 className="text-2xl font-black text-foreground tracking-tight">
+          {(user.name || "Member").split(" ")[0]} 👋
+        </h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
+          <span className={cn("flex items-center gap-1", hasAttendanceDanger && "text-[#ec3750] animate-pulse font-bold danger-glow bg-red-900/20 px-2 py-0.5 rounded-md")}>
+            <CalendarCheck className={cn("h-3.5 w-3.5", hasAttendanceDanger ? "text-[#ec3750]" : "text-[#33d6a6]")} />
+            <span className={cn("font-semibold", hasAttendanceDanger ? "text-[#ec3750]" : "text-foreground")}>{attendancePct}%</span> attendance
+          </span>
+          <span className="text-border">·</span>
+          <span className={cn("flex items-center gap-1", hasProjectDanger && "text-[#ec3750] animate-pulse font-bold danger-glow bg-red-900/20 px-2 py-0.5 rounded-md")}>
+            <FolderKanban className={cn("h-3.5 w-3.5", hasProjectDanger ? "text-[#ec3750]" : "text-[#338eda]")} />
+            <span className={cn("font-semibold", hasProjectDanger ? "text-[#ec3750]" : "text-foreground")}>{activeProjects.length}</span> active project{activeProjects.length !== 1 ? "s" : ""}
+          </span>
+          {streak > 0 && (
+            <>
               <span className="text-border">·</span>
-              <span className={cn("flex items-center gap-1", hasProjectDanger && "text-[#ec3750] animate-pulse font-bold danger-glow bg-red-900/20 px-2 py-0.5 rounded-md")}>
-                <FolderKanban className={cn("h-3.5 w-3.5", hasProjectDanger ? "text-[#ec3750]" : "text-[#338eda]")} />
-                <span className={cn("font-semibold", hasProjectDanger ? "text-[#ec3750]" : "text-foreground")}>{activeProjects.length}</span> active project{activeProjects.length !== 1 ? "s" : ""}
+              <span className="flex items-center gap-1">
+                <Flame className="h-3.5 w-3.5 text-[#ff8c37]" />
+                <span className="font-semibold text-foreground">{streak}</span> meeting streak
               </span>
-              {streak > 0 && (
-                <>
-                  <span className="text-border">·</span>
-                  <span className="flex items-center gap-1">
-                    <Flame className="h-3.5 w-3.5 text-[#ff8c37]" />
-                    <span className="font-semibold text-foreground">{streak}</span> meeting streak
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
+    </div>
+  )
+
+  return (
+    <div className="space-y-6 relative">
+      {/* Ambient Particles */}
+      {!isDangerZone && (
+        <div className="particle-container">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={i}
+              className="particle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${10 + Math.random() * 10}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ── Hero Banner ───────────────────────────────────────────────────── */}
+      {isDangerZone ? (
+        <div className="relative overflow-hidden rounded-2xl p-6 shadow-xl border-2 border-[#ec3750] bg-red-950/20 danger-glow">
+          {heroContent}
+        </div>
+      ) : (
+        <ParallaxBanner className="animate-slide-up-fade">
+          {heroContent}
+        </ParallaxBanner>
+      )}
 
       {/* ── Announcements & Invitations ──────────────────────────────────── */}
       {(sortedAnnouncements.length > 0 || myInvitations.length > 0) && (
