@@ -216,23 +216,6 @@ export default function MemberDashboard() {
 
   return (
     <div className="space-y-6 relative min-h-screen">
-      {/* Ambient Particles */}
-      {!isDangerZone && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div
-              key={i}
-              className="particle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${10 + Math.random() * 10}s`,
-              }}
-            />
-          ))}
-        </div>
-      )}
-
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
       {isDangerZone ? (
         <div className="relative overflow-hidden rounded-2xl p-6 shadow-xl border-2 border-[#ec3750] bg-red-950/20 danger-glow z-10">

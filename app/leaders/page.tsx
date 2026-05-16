@@ -101,21 +101,6 @@ export default function LeadersDashboard() {
 
   return (
     <div className="space-y-6 relative min-h-screen">
-      {/* Ambient Particles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${10 + Math.random() * 10}s`,
-            }}
-          />
-        ))}
-      </div>
-
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
       <ParallaxBanner className="animate-slide-up-fade z-10" fromColor="#ff8c37" toColor="#ec3750">
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10">
