@@ -160,7 +160,7 @@ export default function MemberDashboard() {
   const isDangerZone = user.tags?.includes("danger-zone")
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", isDangerZone && "bg-red-950/10 -mx-4 sm:-mx-8 -mt-4 p-4 sm:p-8 rounded-3xl border border-[#ec3750]/20 min-h-screen")}>
 
       {isDangerZone && (
         <div className="bg-construction-tape p-1.5 rounded-2xl mb-2 shadow-[0_0_20px_rgba(241,196,15,0.4)] animate-continuous-shake">
