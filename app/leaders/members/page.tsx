@@ -251,7 +251,7 @@ export default function MembersPage() {
                     <div className="relative">
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white overflow-hidden ring-2 ring-border/20 transition-all hover:ring-[#338eda]/40"
-                        style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                        style={{ background: member.role === "leader" ? "linear-gradient(135deg, #ec3750, #ff8c37)" : "linear-gradient(135deg, #338eda, #a633d6)" }}
                       >
                         {(() => {
                           const viewerEmail = user?.email?.toLowerCase()

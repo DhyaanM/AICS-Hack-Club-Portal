@@ -379,7 +379,7 @@ export default function LeaderProjectsPage() {
                           <div
                             title={getMemberName(id)}
                             className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold text-white overflow-hidden"
-                            style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                            style={{ background: users.find(u => u.id === id)?.role === "leader" ? "linear-gradient(135deg, #ec3750, #ff8c37)" : "linear-gradient(135deg, #338eda, #a633d6)" }}
                           >
                             {(() => {
                               const member = users.find(u => u.id === id)

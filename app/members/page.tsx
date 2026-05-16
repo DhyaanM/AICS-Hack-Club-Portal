@@ -168,7 +168,7 @@ export default function MemberDashboard() {
       <div className="relative shrink-0">
         <div
           className="h-[4.5rem] w-[4.5rem] rounded-2xl overflow-hidden border-2 border-white/10 shadow-lg"
-          style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+          style={{ background: user.role === "leader" ? "linear-gradient(135deg, #ec3750, #ff8c37)" : "linear-gradient(135deg, #338eda, #a633d6)" }}
         >
           {user.avatar ? (
             <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
@@ -413,7 +413,7 @@ export default function MemberDashboard() {
                       {/* Mini avatar */}
                       <div
                         className="h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center text-white text-[10px] font-black shrink-0"
-                        style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                        style={{ background: entry.user.role === "leader" ? "linear-gradient(135deg, #ec3750, #ff8c37)" : "linear-gradient(135deg, #338eda, #a633d6)" }}
                       >
                         {entry.user.avatar
                           ? <img src={entry.user.avatar} alt={entry.user.name} className="h-full w-full object-cover" />

@@ -260,7 +260,7 @@ export default function AttendancePage() {
                   >
                     <div
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ background: "linear-gradient(135deg, #338eda, #a633d6)" }}
+                      style={{ background: member.role === "leader" ? "linear-gradient(135deg, #ec3750, #ff8c37)" : "linear-gradient(135deg, #338eda, #a633d6)" }}
                     >
                       {initials(member.name)}
                     </div>

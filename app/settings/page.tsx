@@ -96,7 +96,7 @@ export default function SettingsPage() {
                 <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/10 blur-3xl animate-float" />
                 <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/10 blur-3xl animate-float-delayed" />
                 <div className="relative z-10 flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#338eda] to-[#a633d6] flex items-center justify-center text-white shadow-lg shadow-[#338eda]/20">
+                    <div className={`h-16 w-16 rounded-2xl ${fullUser.role === "leader" ? "bg-gradient-to-br from-[#ec3750] to-[#ff8c37]" : "bg-gradient-to-br from-[#338eda] to-[#a633d6]"} flex items-center justify-center text-white shadow-lg shadow-[#338eda]/20`}>
                         <UserCircle className="h-8 w-8" />
                     </div>
                     <div>
@@ -134,7 +134,7 @@ export default function SettingsPage() {
                                             {fullUser.avatar ? (
                                                 <img src={fullUser.avatar} alt="Avatar" className="h-full w-full object-cover transition-transform group-hover:scale-110 duration-500" />
                                             ) : (
-                                                <div className="h-full w-full bg-gradient-to-br from-[#338eda] to-[#a633d6] flex items-center justify-center text-white text-3xl font-bold">
+                                                <div className={`h-full w-full flex items-center justify-center text-white text-3xl font-bold ${fullUser.role === "leader" ? "bg-gradient-to-br from-[#ec3750] to-[#ff8c37]" : "bg-gradient-to-br from-[#338eda] to-[#a633d6]"}`}>
                                                     {fullUser.name.charAt(0).toUpperCase()}
                                                 </div>
                                             )}
