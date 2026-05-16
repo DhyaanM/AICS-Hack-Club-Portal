@@ -29,7 +29,9 @@ import {
   Mail,
   ExternalLink,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import { useState, useEffect } from "react"
@@ -155,14 +157,36 @@ export default function MemberDashboard() {
   }
   const leaderboard = leaderboardFull.slice(0, 5)
   const myInvitations = invitations.filter((inv) => inv.inviteeId === user.id && inv.status === "pending")
+  const isDangerZone = user.tags?.includes("danger-zone")
 
   return (
     <div className="space-y-6">
 
+      {isDangerZone && (
+        <div className="bg-construction-tape p-1.5 rounded-2xl mb-2 shadow-[0_0_20px_rgba(241,196,15,0.4)] animate-continuous-shake">
+          <div className="bg-[#ec3750] text-white p-4 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
+            <AlertTriangle className="h-8 w-8 animate-pulse hidden sm:block" />
+            <div className="flex flex-col">
+              <span className="font-black uppercase tracking-widest text-lg sm:text-xl drop-shadow-md">⚠️ DANGER ZONE ⚠️</span>
+              <span className="text-xs sm:text-sm font-bold opacity-90 mt-0.5">Your club standing is at risk due to inactivity or misbehavior. Speak to a club leader immediately.</span>
+            </div>
+            <AlertTriangle className="h-8 w-8 animate-pulse hidden sm:block" />
+          </div>
+        </div>
+      )}
+
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-[#338eda]/15 via-transparent to-[#a633d6]/15 p-6 animate-slide-up-fade shadow-xl animate-gradient-border shadow-[#338eda]/10">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/10 blur-3xl animate-float" />
-        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/10 blur-3xl animate-float-delayed" />
+      <div className={cn("relative overflow-hidden rounded-2xl p-6 shadow-xl",
+        isDangerZone 
+          ? "border-2 border-[#ec3750] bg-red-950/20 danger-glow" 
+          : "border border-border/50 bg-gradient-to-br from-[#338eda]/15 via-transparent to-[#a633d6]/15 animate-slide-up-fade animate-gradient-border shadow-[#338eda]/10"
+      )}>
+        {!isDangerZone && (
+          <>
+            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/10 blur-3xl animate-float" />
+            <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/10 blur-3xl animate-float-delayed" />
+          </>
+        )}
         <div className="relative flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">

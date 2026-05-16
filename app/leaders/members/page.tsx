@@ -15,10 +15,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map, AlertOctagon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import type { User } from "@/lib/types"
+import { VanillaTiltWrapper } from "@/components/vanilla-tilt-wrapper"
 
 const ROLE_COLOR = { leader: "#ec3750", member: "#338eda" }
 const TAG_COLORS = [
@@ -138,6 +139,17 @@ export default function MembersPage() {
     }
   }
 
+  async function handleToggleDangerZone(memberTarget: User) {
+    const isDanger = memberTarget.tags?.includes("danger-zone")
+    if (isDanger) {
+      await updateMemberTags(memberTarget.id, memberTarget.tags.filter(t => t !== "danger-zone"))
+      toast.success(`${memberTarget.name} removed from Danger Zone.`)
+    } else {
+      await updateMemberTags(memberTarget.id, [...(memberTarget.tags || []), "danger-zone"])
+      toast.error(`${memberTarget.name} placed in Danger Zone!`, { icon: '⚠️' })
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -205,10 +217,13 @@ export default function MembersPage() {
                 const pctColor =
                   stats.total === 0 ? "#8492a6" : stats.percentage >= 80 ? "#33d6a6" : stats.percentage >= 60 ? "#f1c40f" : "#ec3750"
                 return (
-                  <div
-                    key={member.id}
-                    className="flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors"
-                  >
+                  <VanillaTiltWrapper key={member.id} options={{ max: 2, scale: 1.01, speed: 600 }}>
+                    <div
+                      className={cn(
+                        "flex items-center gap-4 px-5 py-4 transition-colors border-l-4",
+                        member.tags?.includes("danger-zone") ? "border-l-[#f1c40f] bg-red-900/10 hover:bg-red-900/20" : "border-l-transparent hover:bg-muted/30"
+                      )}
+                    >
                     {/* Avatar */}
                     <div className="relative">
                       <div
@@ -307,6 +322,22 @@ export default function MembersPage() {
                         title={member.tags?.includes("needs-tour") ? "Disable queued tour" : "Queue tour"}
                       >
                         <Map className="h-4 w-4" />
+                      </Button>
+
+                      {/* Danger Zone Toggle */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-8 w-8 transition-colors",
+                          member.tags?.includes("danger-zone") 
+                            ? "text-[#f1c40f] bg-[#ec3750]/20 hover:bg-[#ec3750]/30 animate-pulse" 
+                            : "text-muted-foreground hover:text-[#ec3750]"
+                        )}
+                        onClick={() => handleToggleDangerZone(member)}
+                        title={member.tags?.includes("danger-zone") ? "Remove from Danger Zone" : "Place in Danger Zone"}
+                      >
+                        <AlertOctagon className="h-4 w-4" />
                       </Button>
 
                       {/* Edit (Restricted to Dhyaan) */}
@@ -438,6 +469,7 @@ export default function MembersPage() {
                       </Dialog>
                     </div>
                   </div>
+                  </VanillaTiltWrapper>
                 )
               })}
             </div>
