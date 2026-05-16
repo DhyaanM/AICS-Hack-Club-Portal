@@ -286,18 +286,18 @@ export default function MemberDashboard() {
       {/* ── Stat Cards ───────────────────────────────────────────────────── */}
       <div id="tour-stats" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
         {[
-          { label: "Attendance", value: `${attendancePct}%`, icon: <CalendarCheck className="h-5 w-5" />, color: attendancePct >= 80 ? "#33d6a6" : attendancePct >= 60 ? "#f1c40f" : "#ec3750", subtitle: `${attended}/${totalMeetings} meetings`, cls: "stagger-1" },
+          { label: "Attendance", value: `${attendancePct}%`, icon: <CalendarCheck className="h-5 w-5" />, color: attendancePct >= 80 ? "#33d6a6" : attendancePct >= 60 ? "#f1c40f" : "#ec3750", subtitle: `${attended}/${totalMeetings} meetings`, cls: "stagger-1", danger: hasAttendanceDanger },
           { label: "Streak", value: streak, icon: <Flame className="h-5 w-5" />, color: "#ff8c37", subtitle: "consecutive meetings", cls: "stagger-2", href: "/members/streaks" },
-          { label: "Active Projects", value: activeProjects.length, icon: <FolderKanban className="h-5 w-5" />, color: "#338eda", cls: "stagger-3" },
+          { label: "Active Projects", value: activeProjects.length, icon: <FolderKanban className="h-5 w-5" />, color: "#338eda", cls: "stagger-3", danger: hasProjectDanger },
           { label: "Pending Leaves", value: pendingLeaves.length, icon: <Clock className="h-5 w-5" />, color: "#a633d6", cls: "stagger-4" },
         ].map((s) => (
           <div key={s.label} className={`animate-slide-up-fade ${s.cls} h-full`}>
             {s.href ? (
               <Link href={s.href} className="block h-full spring-hover-sm">
-                <StatCard label={s.label} value={s.value} icon={s.icon} color={s.color} subtitle={s.subtitle} />
+                <StatCard label={s.label} value={s.value} icon={s.icon} color={s.color} subtitle={s.subtitle} danger={s.danger} />
               </Link>
             ) : (
-              <StatCard label={s.label} value={s.value} icon={s.icon} color={s.color} subtitle={s.subtitle} />
+              <StatCard label={s.label} value={s.value} icon={s.icon} color={s.color} subtitle={s.subtitle} danger={s.danger} />
             )}
           </div>
         ))}

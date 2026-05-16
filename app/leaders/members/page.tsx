@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map, AlertOctagon, Flag } from "lucide-react"
+import { Search, UserPlus, Trash2, Users, Upload, X, Loader2, Image as ImageIcon, Crown, Flame, Map, AlertOctagon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { calculateAttendanceStats, calculateStreak } from "@/lib/attendance-utils"
 import type { User } from "@/lib/types"
@@ -265,11 +265,6 @@ export default function MembersPage() {
                       {(process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "").toLowerCase().split(",").includes(member.email?.toLowerCase() || "") && (
                         <div className="absolute -right-1 -top-1.5 rotate-[25deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] z-10">
                           <Crown className="h-4 w-4 fill-yellow-400 text-yellow-600" />
-                        </div>
-                      )}
-                      {member.tags?.some(t => t.startsWith("danger-zone")) && (
-                        <div className="absolute -left-1.5 -bottom-1.5 -rotate-[15deg] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] z-10 animate-pulse">
-                          <Flag className="h-5 w-5 fill-[#ec3750] text-[#8b0000]" />
                         </div>
                       )}
                     </div>

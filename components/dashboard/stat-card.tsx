@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { AnimatedNumber } from "@/components/animate"
 import { VanillaTiltWrapper } from "@/components/vanilla-tilt-wrapper"
+import { cn } from "@/lib/utils"
 
 interface StatCardProps {
   label: string
@@ -8,9 +9,10 @@ interface StatCardProps {
   icon: ReactNode
   color: string
   subtitle?: string
+  danger?: boolean
 }
 
-export function StatCard({ label, value, icon, color, subtitle }: StatCardProps) {
+export function StatCard({ label, value, icon, color, subtitle, danger }: StatCardProps) {
   // If value is a string that ends with '%', extract the number for animation
   const isPercent = typeof value === "string" && value.endsWith("%")
   const numValue = isPercent ? parseInt(value.slice(0, -1), 10) : Number(value)
@@ -22,10 +24,13 @@ export function StatCard({ label, value, icon, color, subtitle }: StatCardProps)
       className="h-full"
     >
       <div
-        className="hover-glow relative overflow-hidden rounded-2xl bg-card p-5 shadow-sm h-full flex flex-col justify-between border border-border/50"
+        className={cn(
+          "hover-glow relative overflow-hidden rounded-2xl bg-card p-5 shadow-sm h-full flex flex-col justify-between border border-border/50",
+          danger && "border-[3px] border-[#ec3750] bg-red-950/20 animate-pulse danger-glow"
+        )}
         style={{
           "--hover-color": `${color}33`,
-          borderTop: `3px solid ${color}`,
+          borderTop: danger ? undefined : `3px solid ${color}`,
         } as React.CSSProperties}
       >
         {/* Soft gradient wash background */}
