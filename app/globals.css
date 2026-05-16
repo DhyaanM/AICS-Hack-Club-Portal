@@ -643,6 +643,7 @@
 
 .particle {
   position: absolute;
+  bottom: -20px;
   width: 3px;
   height: 3px;
   background: #a633d6;
