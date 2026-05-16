@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useData } from "@/lib/data-context"
 import { StatCard } from "@/components/dashboard/stat-card"
+import { ParallaxBanner } from "@/components/animate/parallax-banner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -99,12 +100,24 @@ export default function LeadersDashboard() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative min-h-screen">
+      {/* Ambient Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${10 + Math.random() * 10}s`,
+            }}
+          />
+        ))}
+      </div>
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#ff8c37]/20 bg-gradient-to-br from-[#ff8c37]/15 via-transparent to-[#ec3750]/10 p-6 animate-slide-up-fade animate-gradient-border shadow-xl shadow-[#ff8c37]/10">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#ff8c37]/15 blur-3xl animate-float" />
-        <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-[#ec3750]/15 blur-3xl animate-float-delayed" />
+      <ParallaxBanner className="animate-slide-up-fade z-10" fromColor="#ff8c37" toColor="#ec3750">
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -139,10 +152,10 @@ export default function LeadersDashboard() {
             ))}
           </div>
         </div>
-      </div>
+      </ParallaxBanner>
 
       {/* ── Stat Cards ───────────────────────────────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-stretch">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-stretch z-10 relative">
         {statCards.map((s, idx) => (
           <div key={s.label} className={`animate-slide-up-fade stagger-${idx + 1} h-full`}>
             <StatCard label={s.label} value={s.value} icon={s.icon} color={s.color} subtitle={s.subtitle} />
@@ -152,7 +165,7 @@ export default function LeadersDashboard() {
 
       {/* ── Chart + Activity ─────────────────────────────────────────────── */}
       <div
-        className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150"
+        className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 z-10 relative"
         style={{ animationFillMode: "both" }}
       >
         {/* Attendance Chart */}

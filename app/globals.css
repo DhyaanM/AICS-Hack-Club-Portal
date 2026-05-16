@@ -632,44 +632,6 @@
 
 /* ── Ambient Aesthetics ───────────────────────────────────────────── */
 
-/* Rotating Conic Gradient for Border Tracing */
-@keyframes spin-border {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.tracing-border-wrapper {
-  position: relative;
-  overflow: hidden;
-  /* border-radius matches rounded-2xl (1rem) */
-  border-radius: 1rem; 
-}
-
-.tracing-border-wrapper::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(transparent 0deg, transparent 90deg, #338eda 180deg, #a633d6 270deg, transparent 360deg);
-  animation: spin-border 4s linear infinite;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.tracing-border-content {
-  position: relative;
-  z-index: 1;
-  /* Ensure this uses a translucent or opaque background, not completely clear */
-  margin: 2px;
-  border-radius: calc(1rem - 2px);
-}
-
 /* Ambient Particles */
 .particle-container {
   position: absolute;

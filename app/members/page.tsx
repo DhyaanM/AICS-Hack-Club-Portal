@@ -215,10 +215,10 @@ export default function MemberDashboard() {
   )
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-6 relative min-h-screen">
       {/* Ambient Particles */}
       {!isDangerZone && (
-        <div className="particle-container">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
           {Array.from({ length: 12 }).map((_, i) => (
             <div
               key={i}
@@ -235,11 +235,11 @@ export default function MemberDashboard() {
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
       {isDangerZone ? (
-        <div className="relative overflow-hidden rounded-2xl p-6 shadow-xl border-2 border-[#ec3750] bg-red-950/20 danger-glow">
+        <div className="relative overflow-hidden rounded-2xl p-6 shadow-xl border-2 border-[#ec3750] bg-red-950/20 danger-glow z-10">
           {heroContent}
         </div>
       ) : (
-        <ParallaxBanner className="animate-slide-up-fade">
+        <ParallaxBanner className="animate-slide-up-fade z-10">
           {heroContent}
         </ParallaxBanner>
       )}
@@ -301,7 +301,7 @@ export default function MemberDashboard() {
       )}
 
       {/* ── Stat Cards ───────────────────────────────────────────────────── */}
-      <div id="tour-stats" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+      <div id="tour-stats" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch z-10 relative">
         {[
           { label: "Attendance", value: `${attendancePct}%`, icon: <CalendarCheck className="h-5 w-5" />, color: attendancePct >= 80 ? "#33d6a6" : attendancePct >= 60 ? "#f1c40f" : "#ec3750", subtitle: `${attended}/${totalMeetings} meetings`, cls: "stagger-1", danger: hasAttendanceDanger },
           { label: "Streak", value: streak, icon: <Flame className="h-5 w-5" />, color: "#ff8c37", subtitle: "consecutive meetings", cls: "stagger-2", href: "/members/streaks" },
@@ -322,7 +322,7 @@ export default function MemberDashboard() {
 
       {/* ── Projects + Leaderboard ───────────────────────────────────────── */}
       <div
-        className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150"
+        className="grid gap-6 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 z-10 relative"
         style={{ animationFillMode: "both" }}
       >
         {/* My Projects */}

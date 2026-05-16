@@ -3,7 +3,17 @@
 import { useState, useRef, useEffect, ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
-export function ParallaxBanner({ children, className }: { children: ReactNode; className?: string }) {
+export function ParallaxBanner({ 
+  children, 
+  className,
+  fromColor = "#338eda",
+  toColor = "#a633d6"
+}: { 
+  children: ReactNode; 
+  className?: string;
+  fromColor?: string;
+  toColor?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
 
@@ -39,27 +49,32 @@ export function ParallaxBanner({ children, className }: { children: ReactNode; c
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-hidden rounded-2xl shadow-xl tracing-border-wrapper bg-card group", className)}
+      className={cn("relative overflow-hidden rounded-2xl shadow-xl bg-card border border-border/50 group h-full", className)}
     >
-      <div className="tracing-border-content h-full p-6 relative overflow-hidden bg-card">
-        {/* Inner static gradient to preserve the original look */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#338eda]/15 via-transparent to-[#a633d6]/15 pointer-events-none" />
-
+      <div 
+        className="h-full p-6 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(to bottom right, ${fromColor}26, transparent, ${toColor}26)`
+        }}
+      >
         {/* Parallax Background Orbs */}
         <div
-          className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#338eda]/20 blur-[60px] transition-transform duration-200 ease-out"
-          style={{ transform: `translate(${position.x * -40}px, ${position.y * -40}px)` }}
+          className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-[60px] transition-transform duration-200 ease-out"
+          style={{ 
+            background: `${fromColor}33`,
+            transform: `translate(${position.x * -40}px, ${position.y * -40}px)` 
+          }}
         />
         <div
-          className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#a633d6]/20 blur-[60px] transition-transform duration-200 ease-out"
-          style={{ transform: `translate(${position.x * -25}px, ${position.y * -25}px)` }}
+          className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full blur-[60px] transition-transform duration-200 ease-out"
+          style={{ 
+            background: `${toColor}33`,
+            transform: `translate(${position.x * -25}px, ${position.y * -25}px)` 
+          }}
         />
         
-        {/* Parallax Content (Moves slightly in the direction of the mouse) */}
-        <div
-          className="relative z-10 transition-transform duration-200 ease-out h-full"
-          style={{ transform: `translate(${position.x * 12}px, ${position.y * 12}px)` }}
-        >
+        {/* Static Content */}
+        <div className="relative z-10 h-full">
           {children}
         </div>
       </div>
